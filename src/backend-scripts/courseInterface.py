@@ -6,17 +6,17 @@ from connectDatabase import DatabaseEngine
 
 
 
-def fetch_ucsc_courses() -> []:
+def fetchCourses() -> []:
   TERM_LIST_URL = "https://andromeda.miragespace.net/slugsurvival/data/fetch/terms.json"
   TERM_INFO_URL = "https://andromeda.miragespace.net/slugsurvival/data/fetch/terms/"
   COURSE_INFO_URL = "https://andromeda.miragespace.net/slugsurvival/data/fetch/courses/"
 
-  ucsc_term = get_current_ucsc_term(TERM_LIST_URL)
+  ucsc_term = getCurrentQuarter(TERM_LIST_URL)
   term_id = ucsc_term["code"]
   quarter = ucsc_term["name"].split()[1] + " " + ucsc_term["name"].split()[0]
 
-  term_data = fetcherHelper.send_get_request(TERM_INFO_URL+str(term_id)+".json")
-  course_data = fetcherHelper.send_get_request(COURSE_INFO_URL+str(term_id)+".json")
+  term_data = fetcherHelper.sendGetRequest(TERM_INFO_URL+str(term_id)+".json")
+  course_data = fetcherHelper.sendGetRequest(COURSE_INFO_URL+str(term_id)+".json")
 
 
   all_courses = []
@@ -64,13 +64,13 @@ Returns JSON of the form:
 }
 """
 
-def get_current_ucsc_term(api_url: str) -> json:
-    data = fetcherHelper.send_get_request(api_url)
+def getCurrentQuarter(api_url: str) -> json:
+    data = fetcherHelper.sendGetRequest(api_url)
     return data[0]
 
-def fill_course_json(fileName):
+def fillCourseJson(fileName):
   data = {}
-  courses = fetch_ucsc_courses()
+  courses = fetchCourses()
   for course in courses:
     data[course.id] = {
       "name": course.name,
@@ -84,45 +84,23 @@ def fill_course_json(fileName):
       json.dump(data, outfile)
   return
 
-def fill_db(engine):
-  courses = fetch_ucsc_courses()
+def fillDatabase(engine):
+  courses = fetchCourses()
   for course in courses:
-    courseData = {
-      "courseid": course.id,
-      "name": course.name.replace("'", "''"),
-      "quarter": course.quarter
+    kwargs = {
+      "id": course.id,
+      "name": course.name,
+      "quarter": course.quarter,
+      "geCodes": course.geCodes,
+      "prerequisites": course.prerequisites
     }
     time = course.time
     if time is not None:
-      startTime = time[0] + ":00"
-      endTime = time[1] + ":00"
-      courseData["starttime"] = startTime
-      courseData["endtime"] = endTime
-
-    geCodes = "NULL"
-    prerequisites = "NULL"
-    if len(course.geCodes) > 0:
-      courseData["gecodes"] = ",".join(course.geCodes)
-    if len(course.prerequisites) > 0:
-      courseData["prerequisites"] = ",".join(course.prerequisites)
+      kwargs["startTime"] = time[0] + ":00"
+      kwargs["endTime"] = time[1] + ":00"
     
-    cols = []
-    vals = []
-    for dataPoint in courseData:
-      cols.append(dataPoint)
-      if isinstance(courseData[dataPoint], str):
-        vals.append("'{0}'".format(courseData[dataPoint]))
-      else:
-        vals.append(str(courseData[dataPoint]))
+    engine.insertCourse(**kwargs)
 
-    colString = "({0})".format(",".join(cols))
-    valString = "({0})".format(",".join(vals))
-
-    engine.insert_into_db("courses", "courses", colString, valString)
-
-
-if __name__ == '__main__':
+def getCourses():
   databaseEngine = DatabaseEngine()
-  fill_course_json('courseData.json')
-
-
+  return databaseEngine.getCourses()

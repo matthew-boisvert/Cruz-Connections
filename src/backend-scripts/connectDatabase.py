@@ -1,6 +1,13 @@
 from cassandra.cluster import Cluster
+from cassandra.cqlengine.connection import register_connection, set_default_connection
 from cassandra.auth import PlainTextAuthProvider
+from cassandra.cqlengine import columns
+from cassandra.cqlengine.models import Model
+from cassandra.cqlengine.management import sync_table
 import json
+
+_session = None
+_keyspace = "Courses"
 
 class DatabaseEngine():
         def __init__(self):
@@ -19,16 +26,25 @@ class DatabaseEngine():
                 auth_provider = PlainTextAuthProvider(user, password)
                 cluster = Cluster(cloud=cloud_config, auth_provider=auth_provider)
                 self.session = cluster.connect()
+                self.session.execute("USE {}".format(_keyspace))
+                _session = self.session
+                register_connection(str(_session), session=_session)
+                set_default_connection(str(_session))
 
-        def insert_into_db(self, keyspace, table, cols, vals):
-                self.session.execute("use {0}".format(keyspace))
-                self.session.execute("insert into {0} {1} values {2}".format(table, cols, vals))
+        def insertCourse(self, **kwargs):
+            Courses.create(**kwargs)
 
-        def select_from_db(self, keyspace, table, cols, condition=None):
-                session.execute("use {0}".format(keyspace))
-                rows = None
-                if condition is None:
-                        rows = session.execute("select {0} from {1}".format(cols, table))
-                else:
-                        rows = session.execute("select {0} from {1} where {2}".format(cols, table, condition))
-                return [row for row in rows]
+        def getCourses(self):
+                return [course for course in Courses.objects.all()]
+
+
+class Courses(Model):
+        __keyspace__ = 'courses'
+        id = columns.Integer(primary_key=True)
+        startTime = columns.Time()
+        endTime = columns.Time()
+        geCodes = columns.List(columns.Text())
+        name = columns.Text()
+        quarter = columns.Text()
+        prerequisites = columns.List(columns.Text())
+        session = _session
