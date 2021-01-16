@@ -70,15 +70,24 @@ def getCurrentQuarter(api_url: str) -> json:
 
 def fillCourseJson(fileName):
   data = {}
+  data["nodes"] = []
+  data["links"] = []
   courses = fetchCourses()
+
   for course in courses:
-    data[course.id] = {
-      "name": course.name,
-      "quarter": course.quarter,
-      "time": course.time,
-      "geCodes": course.geCodes,
-      "prerequisites": course.prerequisites
-    }
+    id = course.name.split(" - ")[0]
+    data["nodes"].append({
+      "id": id,
+      "group": abs(hash(course.name.split(" ")[0]) % 50)
+    })
+    for prereq in course.prerequisites:
+      classesWithID = [item for item in data["nodes"] if item['id'] == prereq]
+      if len(classesWithID) > 0:      
+        data["links"].append({
+          "source": id,
+          "target": prereq,
+          "value": 1
+        })
 
   with open(fileName, 'w') as outfile:
       json.dump(data, outfile)
@@ -104,3 +113,5 @@ def fillDatabase(engine):
 def getCourses():
   databaseEngine = DatabaseEngine()
   return databaseEngine.getCourses()
+
+fillCourseJson('../frontend/test.json')
