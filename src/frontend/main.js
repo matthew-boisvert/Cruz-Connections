@@ -12,6 +12,8 @@ const highlightNodes = new Set();
 const highlightLinks = new Set();
 let hoverNode = null;
 
+
+
 const Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
     .jsonUrl('./data.json')
@@ -20,9 +22,11 @@ const Graph = ForceGraph3D()
     .linkDirectionalArrowLength(3.5)
     .linkDirectionalArrowRelPos(1)
     .enableNodeDrag(false) //disable node dragging
-    .linkWidth(link => highlightLinks.has(link) ? 4 : 1)
+    .linkWidth(link => highlightLinks.has(link) ? 4 : 2)
     .linkDirectionalParticles(link => highlightLinks.has(link) ? 4 : 0)
     .linkDirectionalParticleWidth(4)
+    .d3AlphaDecay(.05)
+    .d3VelocityDecay(.4)
     .onNodeClick(node => window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=`+node.id, '_blank'))
     .nodeThreeObject(node => {
         const sprite = new SpriteText(node.id);

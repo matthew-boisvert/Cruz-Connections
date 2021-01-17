@@ -1,3 +1,6 @@
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap" rel="stylesheet">
+
 <head>
     <style> body { margin: 0; } </style>
   
@@ -9,12 +12,39 @@
   </head>
   
 <body>
-  <div style="position: fixed; top:12px;left: 1%; z-index: 10;">
-    <input id="searchbar" type="text" name="search" placeholder="Search...">
-    <input type="button" value="Add" onclick="addToSet()">
-    <input type="button" value="Subtract" onclick="subtractToSet()">
-    <input type="button" value="Reset" onclick="reset()">
+  <div style="">
+  
+    <div style="position: fixed; top:12px;left: 1%; z-index: 10;">
+      <div>
+        <input id="searchbar" type="text" name="search" placeholder="Search...">
+        <input type="button" value="Add" onclick="addToSet()">
+        <input type="button" value="Subtract" onclick="subtractToSet()">
+        <input type="button" value="Reset" onclick="reset()">
+      </div>
+      
+      <div style="position: fixed; top:-15px;left: 41%; z-index: 10;">
+        <h1 style="color: rgb(0, 109, 128); font-family: 'Yusei Magic', sans-serif; ">Cruz Connections</h1>
+      </div>
+      
+      <div style="border-radius: 100px 100px 100px 100px; padding: 3px; background: rgb(0, 109, 128); position: fixed; top:10px; right: 38.75%; z-index: 10;">
+        <img style="height: 38px; width: 38px;" src="./static/Logo.png">
+      </div>
+
+      <div style="border-radius: 70px 70px 70px 70px; background: #ffffff; position: fixed; top:10px; right: 15px; z-index: 10;">
+        <a href="https://github.com/matthew-boisvert/Cruz-Connections" target="_blank"> <img style="height: 45px; width: 45px;" src="./static/githubLogo.png"> </a>
+      </div>
+
+      <!-- <div style="position: fixed; top:-15px;left: 40%; z-index: 10;">
+        <h1 style="color: rgb(0, 109, 128); ">Made by </h1>
+      </div> -->
+
+    </div>
+    
   </div>
+
+
+
+
 
   <div id="3d-graph"></div>
   
