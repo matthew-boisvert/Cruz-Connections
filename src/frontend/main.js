@@ -250,12 +250,12 @@ function makeAllVisible()
         link.__arrowObj.visible = true;
     });
 
-    Graph.graphData().nodes.forEach(node => {
-        visibleNodes.push(node);
-    });
-    Graph.graphData().links.forEach(link => {
-        visibleLinks.push(link);
-    });
+    // Graph.graphData().nodes.forEach(node => {
+    //     visibleNodes.push(node);
+    // });
+    // Graph.graphData().links.forEach(link => {
+    //     visibleLinks.push(link);
+    // });
 }
 
 function clearVisibleArrays()
