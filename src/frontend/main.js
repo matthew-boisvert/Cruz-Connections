@@ -8,6 +8,10 @@ let visibleLinks = [];
 let setMode = "add";
 // setMode: add, subtract, focus
 
+const highlightNodes = new Set();
+const highlightLinks = new Set();
+let hoverNode = null;
+
 const Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
     .jsonUrl('./data.json')
@@ -16,13 +20,56 @@ const Graph = ForceGraph3D()
     .linkDirectionalArrowLength(3.5)
     .linkDirectionalArrowRelPos(1)
     .enableNodeDrag(false) //disable node dragging
+    .linkWidth(link => highlightLinks.has(link) ? 4 : 1)
+    .linkDirectionalParticles(link => highlightLinks.has(link) ? 4 : 0)
+    .linkDirectionalParticleWidth(4)
+    .onNodeClick(node => window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=`+node.id, '_blank'))
     .nodeThreeObject(node => {
         const sprite = new SpriteText(node.id);
         sprite.material.depthWrite = false; // make sprite background transparent
         sprite.color = node.color;
         sprite.textHeight = 8;
         return sprite;
-    });
+    })
+    .onNodeHover(node => {
+        const elem = document.getElementById('3d-graph');
+        elem.style.cursor = node ? 'pointer' : null;
+        // no state change
+        if ((!node && !highlightNodes.size) || (node && hoverNode === node)) return;
+
+        highlightNodes.clear();
+        highlightLinks.clear();
+        if (node) {
+          highlightNodes.add(node);
+          neighbors = getNeighbors(node);
+          neighbors[0].forEach(neighbor => highlightNodes.add(neighbor));
+          neighbors[1].forEach(link => highlightLinks.add(link));
+        }
+
+        hoverNode = node || null;
+
+        updateHighlight();
+      })
+      .onLinkHover(link => {
+        highlightNodes.clear();
+        highlightLinks.clear();
+
+        if (link) {
+          highlightLinks.add(link);
+          highlightNodes.add(link.source);
+          highlightNodes.add(link.target);
+        }
+
+        updateHighlight();
+      });
+
+function updateHighlight() {
+// trigger update of highlighted objects in scene
+Graph
+    .nodeColor(Graph.nodeColor())
+    .linkWidth(Graph.linkWidth())
+    .linkDirectionalParticles(Graph.linkDirectionalParticles());
+}
 
 
 
@@ -130,6 +177,21 @@ function zoomOnNode(node)
     node, // lookAt ({ x, y, z })
     1000  // ms transition duration
     );
+}
+
+function getNeighbors(node){
+    let resultNodes = [];
+    let resultLinks = [];
+
+    resultNodes.push(node)
+
+    Graph.graphData().links.forEach(link => {
+        if (link.target == node) {
+            resultNodes.push(link.source);
+            resultLinks.push(link);
+        }
+    });
+    return [resultNodes, resultLinks];
 }
 
 function expandFromRoot(node){
