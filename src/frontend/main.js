@@ -10,6 +10,7 @@ const Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
     .jsonUrl('./data.json')
     .nodeAutoColorBy('group')
+    .enableNodeDrag(false) //disable node dragging
     .nodeThreeObject(node => {
         const sprite = new SpriteText(node.id);
         sprite.material.depthWrite = false; // make sprite background transparent
