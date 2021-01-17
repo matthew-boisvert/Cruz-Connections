@@ -2,6 +2,8 @@
 
 <img src="./src/frontend/static/fullLogo.png" width="400" height="250" />
 
+## Click [here](http://cruzconnections.tech/) to view the app
+
 ## Inspiration
 We wanted to see how the different classes we take at Santa Cruz could lead us down other paths (such as using math classes to take physics classes or taking chemistry classes to pursue biology).
 
