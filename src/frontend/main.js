@@ -13,6 +13,7 @@ const Graph = ForceGraph3D()
     .linkVisibility(link => link['value'] == 1)
     .linkDirectionalArrowLength(3.5)
     .linkDirectionalArrowRelPos(1)
+    .enableNodeDrag(false) //disable node dragging
     .nodeThreeObject(node => {
         const sprite = new SpriteText(node.id);
         sprite.material.depthWrite = false; // make sprite background transparent
