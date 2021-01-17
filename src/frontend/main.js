@@ -12,7 +12,7 @@ const Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
     .jsonUrl('./data.json')
     .nodeAutoColorBy('group')
-    .linkVisibility(link => link['value'] == 1)
+    // .linkVisibility(link => link['value'] == 1)
     .linkDirectionalArrowLength(3.5)
     .linkDirectionalArrowRelPos(1)
     .enableNodeDrag(false) //disable node dragging
@@ -23,6 +23,8 @@ const Graph = ForceGraph3D()
         sprite.textHeight = 8;
         return sprite;
     });
+
+
 
 // Spread nodes a little wider
 Graph.d3Force('charge').strength(-120);
@@ -169,6 +171,7 @@ function makeAllVisible()
     // Reset visibility of all links
     Graph.graphData().links.forEach(link => {
         link.__lineObj.visible = true;
+        link.__arrowObj.visible = true;
     });
 }
 
@@ -195,6 +198,7 @@ function focusVisible()
         if(!visibleLinks.includes(link))
         {
             link.__lineObj.visible = false;
+            link.__arrowObj.visible = false;
         }
     });
 }
