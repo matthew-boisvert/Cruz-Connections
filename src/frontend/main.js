@@ -1,10 +1,10 @@
 const searchBar = document.getElementById("searchBar");
 
-var currentSearchInput = "";
-var enteredSearchInput = "";
+let currentSearchInput = "";
+let enteredSearchInput = "";
 
-var visibleNodes = [];
-var visibleLinks = [];
+let visibleNodes = [];
+let visibleLinks = [];
 
 const Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
@@ -24,15 +24,20 @@ Graph.d3Force('charge').strength(-120);
 this.addEventListener("keydown", (event) => {
     if(event.code == 'Enter')
     {
-        var searchbarValue = document.getElementById('searchbar').value;
+        let searchbarValue = document.getElementById('searchbar').value;
         enteredSearchInput = searchbarValue
+
+        if (enteredSearchInput == "ALL")
+        {
+            makeAllVisible();
+        }
 
         // console.log("searchbarValue: " + searchbarValue);
         // console.log("enteredSearchInput: " + enteredSearchInput);
         
-        var foundResult = false;
-        var foundNode = null;
-        var foundDepartment = null;
+        let foundResult = false;
+        let foundNode = null;
+        let foundDepartment = null;
 
         // Example graphData() getting
         // console.log(Graph.graphData().nodes[10]);
@@ -45,8 +50,8 @@ this.addEventListener("keydown", (event) => {
                 foundNode = node;
                 foundResult = true;
             }
-            var splitString = node.id.split(" ");
-            var thisDepartment = splitString[0];
+            let splitString = node.id.split(" ");
+            let thisDepartment = splitString[0];
             if(thisDepartment == enteredSearchInput)
             {
                 foundDepartment = thisDepartment;
@@ -60,62 +65,53 @@ this.addEventListener("keydown", (event) => {
             visibleNodes.splice(0, visibleNodes.length)
             visibleLinks.splice(0, visibleLinks.length)
 
-            // Reset visibility of all nodes
-            Graph.graphData().nodes.forEach(node => {
-                node.__threeObj.visible = true;
-            });
-
-            // Reset visibility of all links
-            Graph.graphData().links.forEach(link => {
-                link.__lineObj.visible = true;
-            });
             
             if (foundNode) 
             {
-                console.log(foundNode);
-                zoomOnNode(foundNode)
+                let expansionResult = expandFromRoot(foundNode);
+                // console.log(expansionResult);
+                // console.log(expansionResult[0]);
+                // console.log(expansionResult[1]);
+
+                expansionResult[0].forEach(node => {
+                    visibleNodes.push(node);
+                });
+                expansionResult[1].forEach(link => {
+                    visibleLinks.push(link);
+                });
+
+                focusVisible()
+                zoomOnNode(foundNode);
+                
             }
 
             if (foundDepartment)
             {
-                // Add department nodes
-                Graph.graphData().nodes.forEach(node => {
-                    var splitString = node.id.split(" ");
-                    var thisDepartment = splitString[0];
-                    if(thisDepartment == enteredSearchInput)
-                    {
-                        visibleNodes.push(node)
-                    }
-                });
+                // // Add department nodes
+                // Graph.graphData().nodes.forEach(node => {
+                //     let splitString = node.id.split(" ");
+                //     let thisDepartment = splitString[0];
+                //     if(thisDepartment == enteredSearchInput)
+                //     {
+                //         visibleNodes.push(node)
+                //     }
+                // });
                 
-                // Add department links
-                Graph.graphData().links.forEach(link => {
-                    var splitString = link.source.id.split(" ");
-                    var sourceDepartment = splitString[0];
-                    if (visibleNodes.includes(link.source) && sourceDepartment == foundDepartment) 
-                    {
-                        visibleLinks.push(link);
-                        if(!visibleNodes.includes(link.target))
-                        {
-                            visibleNodes.push(link.target);
-                        }
-                    }
-                });
+                // // Add department links
+                // Graph.graphData().links.forEach(link => {
+                //     let splitString = link.source.id.split(" ");
+                //     let sourceDepartment = splitString[0];
+                //     if (visibleNodes.includes(link.source) && sourceDepartment == foundDepartment) 
+                //     {
+                //         visibleLinks.push(link);
+                //         if(!visibleNodes.includes(link.target))
+                //         {
+                //             visibleNodes.push(link.target);
+                //         }
+                //     }
+                // });
 
-                // Make everything not in visible invisible
-                Graph.graphData().nodes.forEach(node => {
-                    if(!visibleNodes.includes(node))
-                    {
-                        node.__threeObj.visible = false;
-                    }
-                });
-
-                Graph.graphData().links.forEach(link => {
-                    if(!visibleLinks.includes(link))
-                    {
-                        link.__lineObj.visible = false;
-                    }
-                });
+                focusVisible()
             }
         }
     }
@@ -132,4 +128,66 @@ function zoomOnNode(node)
     node, // lookAt ({ x, y, z })
     1000  // ms transition duration
     );
+}
+
+function expandFromRoot(node){
+    let resultNodes = [];
+    let resultLinks = [];
+    let stack = [];
+
+    resultNodes.push(node)
+
+    Graph.graphData().links.forEach(link => {
+        if (link.target == node) {
+            stack.push(link.source);
+            resultNodes.push(link.source);
+            resultLinks.push(link);
+        }
+    });
+    while (stack.length != 0)
+    {
+        let poppedNode = stack.pop();
+        Graph.graphData().links.forEach(link => {
+            if (link.target == poppedNode && !resultNodes.includes(link.source)) {
+                stack.push(link.source);
+                resultNodes.push(link.source);
+                resultLinks.push(link);
+            }
+        });
+    }
+
+    return [resultNodes, resultLinks];
+}
+
+function makeAllVisible()
+{
+    // Reset visibility of all nodes
+    Graph.graphData().nodes.forEach(node => {
+        node.__threeObj.visible = true;
+    });
+
+    // Reset visibility of all links
+    Graph.graphData().links.forEach(link => {
+        link.__lineObj.visible = true;
+    });
+}
+
+function focusVisible()
+{
+    makeAllVisible();
+    
+    // Make everything not in visible invisible
+    Graph.graphData().nodes.forEach(node => {
+        if(!visibleNodes.includes(node))
+        {
+            node.__threeObj.visible = false;
+        }
+    });
+
+    Graph.graphData().links.forEach(link => {
+        if(!visibleLinks.includes(link))
+        {
+            link.__lineObj.visible = false;
+        }
+    });
 }
