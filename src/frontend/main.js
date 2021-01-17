@@ -70,9 +70,14 @@ const Graph = ForceGraph3D()
 function updateHighlight() {
 // trigger update of highlighted objects in scene
 Graph
-    .nodeColor(Graph.nodeColor())
-    .linkWidth(Graph.linkWidth())
     .linkDirectionalParticles(Graph.linkDirectionalParticles());
+    visibleNodes.forEach(node => {
+        node.color = Graph.nodeColor();
+    });
+
+    // .nodeColor(Graph.nodeColor())
+    // .linkWidth(Graph.linkWidth())
+    
 }
 
 
@@ -99,8 +104,8 @@ this.addEventListener("keydown", (event) => {
         let foundDepartment = null;
 
         // Example graphData() getting
-        console.log(Graph.graphData().nodes[10]);
-        console.log(Graph.graphData().links[10]);
+        // console.log(Graph.graphData().nodes[10]);
+        // console.log(Graph.graphData().links[10]);
 
         // Search for node.id or department name
         Graph.graphData().nodes.forEach(node => {
@@ -187,14 +192,18 @@ function getNeighbors(node){
     let resultNodes = [];
     let resultLinks = [];
 
-    resultNodes.push(node)
+    if (visibleNodes.includes(node))
+    {
+        resultNodes.push(node)
 
-    Graph.graphData().links.forEach(link => {
-        if (link.target == node) {
-            resultNodes.push(link.source);
-            resultLinks.push(link);
-        }
-    });
+        Graph.graphData().links.forEach(link => {
+            if (link.target == node && visibleLinks.includes(link) && visibleNodes.includes(link.target)) {
+                resultNodes.push(link.source);
+                resultLinks.push(link);
+            }
+        });
+    }
+    
     return [resultNodes, resultLinks];
 }
 
