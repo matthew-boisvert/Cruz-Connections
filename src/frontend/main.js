@@ -10,6 +10,9 @@ const Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
     .jsonUrl('./data.json')
     .nodeAutoColorBy('group')
+    .linkVisibility(link => link['value'] == 1)
+    .linkDirectionalArrowLength(3.5)
+    .linkDirectionalArrowRelPos(1)
     .nodeThreeObject(node => {
         const sprite = new SpriteText(node.id);
         sprite.material.depthWrite = false; // make sprite background transparent
