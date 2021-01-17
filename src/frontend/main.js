@@ -67,6 +67,7 @@ const Graph = ForceGraph3D()
         updateHighlight();
       });
 
+
 function updateHighlight() {
 // trigger update of highlighted objects in scene
 Graph
@@ -247,6 +248,13 @@ function makeAllVisible()
     Graph.graphData().links.forEach(link => {
         link.__lineObj.visible = true;
         link.__arrowObj.visible = true;
+    });
+
+    Graph.graphData().nodes.forEach(node => {
+        visibleNodes.push(node);
+    });
+    Graph.graphData().links.forEach(link => {
+        visibleLinks.push(link);
     });
 }
 
