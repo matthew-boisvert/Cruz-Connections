@@ -4,6 +4,8 @@ const searchBar = document.getElementById("searchBar");
 
 let Graph = ForceGraph3D();
 
+let allData;
+
 let currentSearchInput = "";
 let enteredSearchInput = "";
 
@@ -28,13 +30,13 @@ request.send();
 
 request.onload = function() 
 {
-    const allData = request.response;
+    allData = request.response;
     // Console log data for reference
-    // console.log(data);
-    // console.log(data['nodes'][100]);
-    // console.log(data['links'][100]);
+    // console.log(allData);
+    // console.log(allData['nodes'][100]);
+    // console.log(allData['links'][100]);
 
-    visibleGraphData = getAllData(allData);
+    visibleGraphData = getData(allData);
 
     Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
@@ -58,25 +60,25 @@ request.onload = function()
         sprite.textHeight = 8;
         return sprite;
     })
-    // .onNodeHover(node => {
-    //     const elem = document.getElementById('3d-graph');
-    //     elem.style.cursor = node ? 'pointer' : null;
-    //     // no state change
-    //     if ((!node && !highlightNodes.size) || (node && hoverNode === node)) return;
+    .onNodeHover(node => {
+        const elem = document.getElementById('3d-graph');
+        elem.style.cursor = node ? 'pointer' : null;
+        // no state change
+        if ((!node && !highlightNodes.size) || (node && hoverNode === node)) return;
 
-    //     highlightNodes.clear();
-    //     highlightLinks.clear();
-    //     if (node) {
-    //       highlightNodes.add(node);
-    //       neighbors = getNeighbors(node);
-    //       neighbors[0].forEach(neighbor => highlightNodes.add(neighbor));
-    //       neighbors[1].forEach(link => highlightLinks.add(link));
-    //     }
+        highlightNodes.clear();
+        highlightLinks.clear();
+        if (node) {
+          highlightNodes.add(node);
+          tree = getExpandedFromRoot(node);
+          tree['nodes'].forEach(child => highlightNodes.add(child));
+          tree['links'].forEach(link => highlightLinks.add(link));
+        }
 
-    //     hoverNode = node || null;
+        hoverNode = node || null;
 
-    //     updateHighlight();
-    //   })
+        updateHighlight();
+      })
     //   .onLinkHover(link => {
     //     highlightNodes.clear();
     //     highlightLinks.clear();
@@ -92,7 +94,6 @@ request.onload = function()
 
 }
 
-/*
 function updateHighlight() {
 // trigger update of highlighted objects in scene
 Graph
@@ -108,7 +109,6 @@ Graph
 
 // Spread nodes a little wider
 Graph.d3Force('charge').strength(-120);
-*/
 
 this.addEventListener("keydown", (event) => {
     if(event.code == 'Enter')
@@ -123,26 +123,14 @@ this.addEventListener("keydown", (event) => {
         
         let foundResult = false;
         let foundNode = null;
-        // let foundDepartment = null;
-
-        // Example graphData() getting
-        // console.log(Graph.graphData().nodes[10]);
-        // console.log(Graph.graphData().links[10]);
 
         // Search for node.id or department name
-        visibleNodes.forEach(node => {
+        allData['nodes'].forEach(node => {
             if(node.id == enteredSearchInput)
             {
                 foundNode = node;
                 foundResult = true;
             }
-            // let splitString = node.id.split(" ");
-            // let thisDepartment = splitString[0];
-            // if(thisDepartment == enteredSearchInput)
-            // {
-            //     foundDepartment = thisDepartment;
-            //     foundResult = true;
-            // }
         });
 
         if(foundResult == true)
@@ -161,7 +149,7 @@ this.addEventListener("keydown", (event) => {
                     visibleLinks.add(link);
                 });
 
-                updateVisualGraph();
+                updateVisualGraph(Graph);
 
             }
         }
@@ -189,7 +177,7 @@ function getNeighbors(node){
     {
         resultNodes.push(node)
 
-        Graph.graphData().links.forEach(link => {
+        allData['links'].forEach(link => {
             if (link.target == node && visibleLinks.includes(link) && visibleNodes.includes(link.target)) {
                 resultNodes.push(link.source);
                 resultLinks.push(link);
@@ -201,23 +189,30 @@ function getNeighbors(node){
 }
 
 function getExpandedFromRoot(node){
+    /*
+    Somehow bugged? 
+    Reproduce: Search and add CSE, hover over ECON 113. 
+    It should highlight all prereqs down it's tree but it
+    also highlights from AM 15 and others not part of the tree
+    */
     let resultNodes = [];
     let resultLinks = [];
     let stack = [];
 
     resultNodes.push(node)
 
-    Graph.graphData.links.forEach(link => {
+    allData['links'].forEach(link => {
         if (link.target == node) {
             stack.push(link.source);
             resultNodes.push(link.source);
             resultLinks.push(link);
         }
     });
+
     while (stack.length != 0)
     {
         let poppedNode = stack.pop();
-        Graph.graphData.links.forEach(link => {
+        allData['links'].forEach(link => {
             if (link.target == poppedNode && !resultNodes.includes(link.source)) {
                 stack.push(link.source);
                 resultNodes.push(link.source);
@@ -226,30 +221,31 @@ function getExpandedFromRoot(node){
         });
     }
 
+    console.log(resultNodes);
+    console.log(resultLinks);
+
     return {nodes: resultNodes, links: resultLinks};
 }
 
-// function addToSet() 
-// {
-//     setMode = "add";
-//     console.log("addToSet");
-// }
+function addToSet() 
+{
+    setMode = "add";
+    console.log("addToSet");
+}
 
-// function subtractToSet() 
-// {
-//     setMode = "subtract";
-//     console.log("subtractToSet");
-// }
+function subtractToSet() 
+{
+    setMode = "subtract";
+    console.log("subtractToSet");
+}
 
-// function reset() 
-// {
-//     clearVisibleArrays();
-//     makeAllVisible();
-//     console.log("reset");
-//     Graph.zoomToFit();
-// }
+function reset() 
+{
+    Graph.graphData(getData(allData));
+    Graph.zoomToFit();
+}
 
-function getAllData(data)
+function getData(data)
 {
     data['nodes'].forEach(node => {
         visibleNodes.add(node);
@@ -262,7 +258,7 @@ function getAllData(data)
     return {nodes: Array.from(visibleNodes), links: Array.from(visibleLinks)};
 }
 
-function updateVisualGraph()
+function updateVisualGraph(Graph)
 {
-    Graph.graphData = {nodes: Array.from(visibleNodes), links: Array.from(visibleLinks)};
+    Graph.graphData({nodes: Array.from(visibleNodes), links: Array.from(visibleLinks)});
 }
