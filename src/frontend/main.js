@@ -1,5 +1,9 @@
 // 3d graph uses: https://github.com/vasturiano/3d-force-graph
 
+/*
+Current bugs: When subtracting and adding back in nodes are colored black forever.
+*/
+
 const searchBar = document.getElementById("searchBar");
 
 let Graph = ForceGraph3D();
@@ -42,7 +46,9 @@ request.onload = function()
     (document.getElementById('3d-graph'))
     .graphData(visibleGraphData)
     // .jsonUrl('./data.json')
+    .nodeOpacity(1)
     .nodeAutoColorBy('group')
+    .backgroundColor('#FFFFFF')
     // .linkVisibility(link => link['value'] == 1)
     .linkDirectionalArrowLength(3.5)
     .linkDirectionalArrowRelPos(1)
@@ -79,36 +85,33 @@ request.onload = function()
 
         updateHighlight();
       })
-    //   .onLinkHover(link => {
-    //     highlightNodes.clear();
-    //     highlightLinks.clear();
+    .onLinkHover(link => {
+        highlightNodes.clear();
+        highlightLinks.clear();
 
-    //     if (link) {
-    //       highlightLinks.add(link);
-    //       highlightNodes.add(link.source);
-    //       highlightNodes.add(link.target);
-    //     }
+        if (link) {
+            highlightLinks.add(link);
+            highlightNodes.add(link.source);
+            highlightNodes.add(link.target);
+        }
 
-    //     updateHighlight();
-    //   });
-
+        updateHighlight();
+    });
 }
 
 function updateHighlight() {
-// trigger update of highlighted objects in scene
-Graph
-    .linkDirectionalParticles(Graph.linkDirectionalParticles());
-    visibleNodes.forEach(node => {
-        node.color = Graph.nodeColor();
-    });
+    // trigger update of highlighted objects in scene
+    Graph.linkDirectionalParticles(Graph.linkDirectionalParticles());
+
+    // visibleNodes.forEach(node => {
+    //     node.color = Graph.nodeColor();
+    // });
 
     // .nodeColor(Graph.nodeColor())
     // .linkWidth(Graph.linkWidth())
     
 }
 
-// Spread nodes a little wider
-Graph.d3Force('charge').strength(-120);
 
 this.addEventListener("keydown", (event) => {
     if(event.code == 'Enter')
@@ -139,9 +142,6 @@ this.addEventListener("keydown", (event) => {
 
             if (setMode == "add")
             {
-                visibleNodes.clear();
-                visibleLinks.clear();
-
                 expansionResult['nodes'].forEach(node => {
                     visibleNodes.add(node);
                 });
@@ -149,8 +149,35 @@ this.addEventListener("keydown", (event) => {
                     visibleLinks.add(link);
                 });
 
-                updateVisualGraph(Graph);
+                // Final visibleLink adding of any possible links between all visible nodes
+                // allData['links'].forEach(link => {
+                //     if (visibleNodes.has(link.target) && visibleNodes.has(link.source))
+                //     {
+                //         visibleLinks.add(link);
+                //     }
+                // });
 
+                updateVisualGraph();
+            }
+
+            if (setMode == "subtract")
+            {
+                console.log("Subtracting");
+
+                expansionResult['nodes'].forEach(node => {
+                    visibleNodes.delete(node);
+                    allData['links'].forEach(link => {
+                        if (link.source == node)
+                        {
+                            visibleLinks.delete(link);
+                        }
+                    });
+                });
+                expansionResult['links'].forEach(link => {
+                    visibleLinks.delete(link);
+                });
+
+                updateVisualGraph();
             }
         }
     }
@@ -159,42 +186,17 @@ this.addEventListener("keydown", (event) => {
 function zoomOnNode(node) 
 {
     // Copy pasted code from focus on node example
-    const distance = 300;
+    const distance = 500;
     const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
 
     Graph.cameraPosition(
     { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }, // new position
     node, // lookAt ({ x, y, z })
-    1000  // ms transition duration
+    3000  // ms transition duration
     );
 }
 
-function getNeighbors(node){
-    let resultNodes = [];
-    let resultLinks = [];
-
-    if (visibleNodes.includes(node))
-    {
-        resultNodes.push(node)
-
-        allData['links'].forEach(link => {
-            if (link.target == node && visibleLinks.includes(link) && visibleNodes.includes(link.target)) {
-                resultNodes.push(link.source);
-                resultLinks.push(link);
-            }
-        });
-    }
-    
-    return [resultNodes, resultLinks];
-}
-
 function getExpandedFromRoot(node){
-    /*
-    Somehow bugged? 
-    Reproduce: Search and add CSE, hover over ECON 113. 
-    It should highlight all prereqs down it's tree but it
-    also highlights from AM 15 and others not part of the tree
-    */
     let resultNodes = [];
     let resultLinks = [];
     let stack = [];
@@ -221,9 +223,6 @@ function getExpandedFromRoot(node){
         });
     }
 
-    console.log(resultNodes);
-    console.log(resultLinks);
-
     return {nodes: resultNodes, links: resultLinks};
 }
 
@@ -239,10 +238,18 @@ function subtractToSet()
     console.log("subtractToSet");
 }
 
-function reset() 
+function resetGraph() 
 {
-    Graph.graphData(getData(allData));
-    Graph.zoomToFit();
+    Graph.graphData(getData(allData))
+    .nodeAutoColorBy('group')
+    .zoomToFit();
+}
+
+function clearGraph() 
+{
+    visibleNodes.clear();
+    visibleLinks.clear();
+    updateVisualGraph();
 }
 
 function getData(data)
@@ -258,7 +265,8 @@ function getData(data)
     return {nodes: Array.from(visibleNodes), links: Array.from(visibleLinks)};
 }
 
-function updateVisualGraph(Graph)
+function updateVisualGraph()
 {
     Graph.graphData({nodes: Array.from(visibleNodes), links: Array.from(visibleLinks)});
+    Graph.nodeAutoColorBy('group');
 }
