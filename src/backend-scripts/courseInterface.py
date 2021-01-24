@@ -2,7 +2,6 @@ import json
 from course import Course
 import fetcherHelper
 import re
-from connectDatabase import DatabaseEngine
 
 
 
@@ -20,8 +19,12 @@ def fetchCourses(numQuartersAgo):
 
 
   all_courses = {}
+  OLD_PREFIXES = {"AMS", "CMPE", "CMPS", "EE", "TIM"}
+
   # Getting the data available from the term API (name, class time)
   for course_prefix in term_data:
+    if course_prefix in OLD_PREFIXES:
+      continue
     for course in term_data[course_prefix]:
       new_course = Course(id=course["num"], quarter=quarter)
 
@@ -33,7 +36,10 @@ def fetchCourses(numQuartersAgo):
       new_course.geCodes = course_data[str(new_course.id)]["ge"]
       prerequisites = course_data[str(new_course.id)]["re"]
       if prerequisites is not None:
-        new_course.prerequisites = re.findall("[A-Z]{1,5} [0-9A-Z]{1,3}", prerequisites)
+        new_course.prerequisites = re.findall("[A-Z]{1,5} [0-9]{1,3}[A-Z]{0,2}", prerequisites)
+        for prereq in new_course.prerequisites:
+          if prereq.split(" ")[0] in OLD_PREFIXES:
+            new_course.prerequisites.remove(prereq)
 
       if(class_time != None and class_time != False):
         try:
@@ -116,22 +122,22 @@ def fillCourseJson(fileName):
       json.dump(data, outfile)
   return
 
-def fillDatabase(engine):
-  courses = fetchCourses()
-  for course in courses:
-    kwargs = {
-      "id": course.id,
-      "name": course.name,
-      "quarter": course.quarter,
-      "geCodes": course.geCodes,
-      "prerequisites": course.prerequisites
-    }
-    time = course.time
-    if time is not None:
-      kwargs["startTime"] = time[0] + ":00"
-      kwargs["endTime"] = time[1] + ":00"
+# def fillDatabase(engine):
+#   courses = fetchCourses()
+#   for course in courses:
+#     kwargs = {
+#       "id": course.id,
+#       "name": course.name,
+#       "quarter": course.quarter,
+#       "geCodes": course.geCodes,
+#       "prerequisites": course.prerequisites
+#     }
+#     time = course.time
+#     if time is not None:
+#       kwargs["startTime"] = time[0] + ":00"
+#       kwargs["endTime"] = time[1] + ":00"
     
-    engine.insertCourse(**kwargs)
+#     engine.insertCourse(**kwargs)
 
 def getCourses():
   databaseEngine = DatabaseEngine()
