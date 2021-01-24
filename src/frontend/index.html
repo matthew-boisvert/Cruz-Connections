@@ -13,19 +13,18 @@
   </head>
   
 <body>
-	<div class="welcome-popup" id="welcomepopup">
-		<h1 style="text-align: center;">Welcome to Cruz Connections</h1>
-		<p>This app is an interactive 3D graph that allows you to see how courses
+	<div class="welcome-popup" id="welcomepopup" style= "z-index: 9; display: block;">
+		<h1 class="popupitems">Welcome to Cruz Connections</h1>
+		<p class="popupitems">This app is an interactive 3D graph that allows you to see how courses
 		and departments at UCSC are conneced via prerequisites</p>
 		<button type="button" class ="close-welcome" onclick="closePopup()">Enter Cruz Connections</button>
 	</div>
 
 	<script>
 		function closePopup() {
-			document.getElementById("welcomepopup).style.display = "none";
-		}
+			document.getElementById("welcomepopup").style.display = "none";
+		}	
 	</script>
-
 
   <div style="">
   
