@@ -1,9 +1,5 @@
 // 3d graph uses: https://github.com/vasturiano/3d-force-graph
 
-/*
-Current bugs: When subtracting and adding back in nodes are colored black forever.
-*/
-
 const searchBar = document.getElementById("searchBar");
 
 let Graph = ForceGraph3D();
@@ -13,8 +9,8 @@ let allData;
 let currentSearchInput = "";
 let enteredSearchInput = "";
 
-let visibleNodes = new Set();
-let visibleLinks = new Set();
+const visibleNodes = new Set();
+const visibleLinks = new Set();
 let visibleGraphData = {};
 
 let setMode = "add";
@@ -22,7 +18,11 @@ let setMode = "add";
 
 const highlightNodes = new Set();
 const highlightLinks = new Set();
-let hoverNode = null;
+let selectedNode = null;
+
+let graphSpread = true;
+let maxSpreadVal = -1000;
+let minSpreadVal = -200;
 
 // Get JSON data: https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON
 let requestURL = './data.json';
@@ -35,12 +35,9 @@ request.send();
 request.onload = function() 
 {
     allData = request.response;
-    // Console log data for reference
-    // console.log(allData);
-    // console.log(allData['nodes'][100]);
-    // console.log(allData['links'][100]);
-
+    
     visibleGraphData = getData(allData);
+    console.log(visibleGraphData);
 
     Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
@@ -48,8 +45,7 @@ request.onload = function()
     // .jsonUrl('./data.json')
     .nodeOpacity(1)
     .nodeAutoColorBy('group')
-    .backgroundColor('#FFFFFF')
-    // .linkVisibility(link => link['value'] == 1)
+    .linkOpacity(0.1)
     .linkDirectionalArrowLength(3.5)
     .linkDirectionalArrowRelPos(1)
     .enableNodeDrag(false) //disable node dragging
@@ -58,7 +54,6 @@ request.onload = function()
     .linkDirectionalParticleWidth(4)
     .d3AlphaDecay(.05)
     .d3VelocityDecay(.4)
-    .onNodeClick(node => window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=`+node.id, '_blank'))
     .nodeThreeObject(node => {
         const sprite = new SpriteText(node.id);
         sprite.material.depthWrite = false; // make sprite background transparent
@@ -66,37 +61,50 @@ request.onload = function()
         sprite.textHeight = 8;
         return sprite;
     })
-    .onNodeHover(node => {
+    // .onNodeClick(node => window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=`+node.id, '_blank'))
+    .onNodeClick(node => {
+        let toUpdateGraph = false;
+
         const elem = document.getElementById('3d-graph');
         elem.style.cursor = node ? 'pointer' : null;
         // no state change
-        if ((!node && !highlightNodes.size) || (node && hoverNode === node)) return;
-
+        if ((!node && !highlightNodes.size) ) return;
+        // || (node && selectedNode === node)
         highlightNodes.clear();
         highlightLinks.clear();
         if (node) {
-          highlightNodes.add(node);
-          tree = getExpandedFromRoot(node);
-          tree['nodes'].forEach(child => highlightNodes.add(child));
-          tree['links'].forEach(link => highlightLinks.add(link));
+            highlightNodes.add(node);
+            tree = getExpandedFromRoot(node);
+            tree['nodes'].forEach(node => {
+                if (!visibleNodes.has(node))
+                {
+                    toUpdateGraph = true;
+                    visibleNodes.add(node);
+                }
+                highlightNodes.add(node);
+            });
+            tree['links'].forEach(link => {
+                if (!visibleLinks.has(link))
+                {
+                    toUpdateGraph = true;
+                    visibleLinks.add(link);
+                }
+                highlightLinks.add(link);
+            });
         }
 
-        hoverNode = node || null;
+        selectedNode = node || null;
 
+        updateNav(node)
+        openNav();
+
+        if (toUpdateGraph) {updateVisualGraph()};
+        
         updateHighlight();
       })
-    .onLinkHover(link => {
-        highlightNodes.clear();
-        highlightLinks.clear();
 
-        if (link) {
-            highlightLinks.add(link);
-            highlightNodes.add(link.source);
-            highlightNodes.add(link.target);
-        }
+    Graph.d3Force('charge').strength(minSpreadVal);
 
-        updateHighlight();
-    });
 }
 
 function updateHighlight() {
@@ -109,7 +117,6 @@ function updateHighlight() {
 
     // .nodeColor(Graph.nodeColor())
     // .linkWidth(Graph.linkWidth())
-    
 }
 
 
@@ -117,19 +124,14 @@ this.addEventListener("keydown", (event) => {
     if(event.code == 'Enter')
     {
         let searchbarValue = document.getElementById('searchbar').value;
-        enteredSearchInput = searchbarValue
-
-        // if (enteredSearchInput == "")
-        // {
-        //     makeAllVisible();
-        // }
+        enteredSearchInput = searchbarValue;
         
         let foundResult = false;
         let foundNode = null;
 
         // Search for node.id or department name
         allData['nodes'].forEach(node => {
-            if(node.id == enteredSearchInput)
+            if(node.id.toLowerCase() == enteredSearchInput.toLowerCase())
             {
                 foundNode = node;
                 foundResult = true;
@@ -140,7 +142,7 @@ this.addEventListener("keydown", (event) => {
         {
             let expansionResult = getExpandedFromRoot(foundNode);
 
-            if (setMode == "add")
+            if (setMode == "add" && !visibleNodes.has(enteredSearchInput))
             {
                 expansionResult['nodes'].forEach(node => {
                     visibleNodes.add(node);
@@ -162,8 +164,6 @@ this.addEventListener("keydown", (event) => {
 
             if (setMode == "subtract")
             {
-                console.log("Subtracting");
-
                 expansionResult['nodes'].forEach(node => {
                     visibleNodes.delete(node);
                     allData['links'].forEach(link => {
@@ -186,13 +186,13 @@ this.addEventListener("keydown", (event) => {
 function zoomOnNode(node) 
 {
     // Copy pasted code from focus on node example
-    const distance = 500;
+    const distance = 100;
     const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
 
     Graph.cameraPosition(
     { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }, // new position
     node, // lookAt ({ x, y, z })
-    3000  // ms transition duration
+    1000  // ms transition duration
     );
 }
 
@@ -270,3 +270,57 @@ function updateVisualGraph()
     Graph.graphData({nodes: Array.from(visibleNodes), links: Array.from(visibleLinks)});
     Graph.nodeAutoColorBy('group');
 }
+
+
+function openNav() {
+    document.getElementById("mySidenav").style.width = "250px";
+}
+  
+function closeNav() {
+    document.getElementById("mySidenav").style.width = "0";
+}
+
+function updateNav(node) {
+    document.getElementById("navTitle").innerHTML = node.id;
+}
+
+function openCourseCatalog() {
+    window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=`+selectedNode.id, '_blank');
+}
+
+function focusHighlightedNodes() {
+    let toUpdateGraph = false;
+    visibleNodes.forEach(node => {
+        if(!highlightNodes.has(node))
+        {
+            toUpdateGraph = true;
+            visibleNodes.delete(node);
+        }
+    });
+    visibleLinks.forEach(link => {
+        if(!highlightLinks.has(link))
+        {
+            toUpdateGraph = true;
+            visibleLinks.delete(link);
+        }
+    });
+    if (toUpdateGraph) {updateVisualGraph()};
+}
+
+function zoomOnSelectedNode() {
+    zoomOnNode(selectedNode);
+}
+
+function toggleNodeSpread() {
+    if (graphSpread) {
+        Graph.d3Force('charge').strength(maxSpreadVal);
+        graphSpread = false;
+    } 
+    else 
+    {
+        Graph.d3Force('charge').strength(minSpreadVal);
+        graphSpread = true;
+    }
+    updateVisualGraph();
+}
+

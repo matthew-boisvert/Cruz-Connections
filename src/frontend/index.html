@@ -3,17 +3,77 @@
 <link rel="stylesheet" href="website.css">
 
 <head>
-    <style> body { margin: 0; } </style>
-  
-    <script src="./three.js"></script>
-    <script src="./three-spritetext.js"></script>
-  
-    <script src="./3d-force-graph.js"></script>
+  <!-- <style> body { margin: 0; } </style> -->
+  <style>
+    body {
+      font-family: "Lato", sans-serif;
+    }
     
-  </head>
-  
+    .sidenav {
+      height: 100%;
+      width: 0;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      right: 0;
+      background-color: rgb(255, 255, 255);
+      overflow-x: hidden;
+      transition: 0.5s;
+      padding-top: 60px;
+    }
+    
+    .sidenav h1 {
+      /* padding: 8px 8px 8px 32px; */
+      text-align: center;
+      text-decoration: none;
+      font-size: 30px;
+      color: #000000;
+    }
+
+    .sidenav input {
+      /* padding: 8px 8px 8px 32px; */
+      text-decoration: none;
+      font-size: 16px;
+      color: #000000;
+    }
+    
+    .sidenav .closebtn {
+      position: absolute;
+      top: 0;
+      right: 25px;
+      font-size: 36px;
+      margin-left: 50px;
+    }
+    
+    @media screen and (max-height: 450px) {
+      .sidenav {padding-top: 15px;}
+      .sidenav a {font-size: 18px;}
+    }
+  </style>
+
+  <script src="./three.js"></script>
+  <script src="./three-spritetext.js"></script>
+
+  <script src="./3d-force-graph.js"></script>
+</head>
+
+<!-- Sidebar from https://www.w3schools.com/howto/howto_js_sidenav.asp-->
 <body>
-	<div class="welcome-popup" id="welcomepopup" style= "z-index: 9; display: block;">
+  <div id="mySidenav" class="sidenav">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <div style="text-align:center;">
+      <h1 id="navTitle"></h1>
+      <input type="button" value="Link to course catalog" onclick="openCourseCatalog()">
+      <input type="button" value="Focus highlited nodes" onclick="focusHighlightedNodes()">
+      <input type="button" value="Zoom on selected node" onclick="zoomOnSelectedNode()">
+    </div>
+  </div>
+  <!-- <span style="font-size:30px;cursor:pointer; position: fixed; top: 0px; right: 0px; z-index: 10; background: #ffffff" onclick="openNav()">&#9776; open</span> -->
+</body>
+
+<!-- Main -->
+<body>
+	<!-- <div class="welcome-popup" id="welcomepopup" style= "z-index: 9; display: block;">
 		<h1 class="popupitems">Welcome to Cruz Connections</h1>
 		<p class="popupitems">This app is an interactive 3D graph that allows you to see how courses
 		and departments at UCSC are conneced via prerequisites</p>
@@ -24,9 +84,9 @@
 		function closePopup() {
 			document.getElementById("welcomepopup").style.display = "none";
 		}	
-	</script>
+	</script> -->
 
-  <div style="">
+  <div>
   
     <div style="position: fixed; top:12px;left: 1%; z-index: 10;">
       <div>
@@ -35,6 +95,7 @@
         <input type="button" value="Subtract" onclick="subtractToSet()">
         <input type="button" value="Show All" onclick="resetGraph()">
         <input type="button" value="Clear Graph" onclick="clearGraph()">
+        <input type="button" value="Toggle spread" onclick="toggleNodeSpread()">
       </div>
       
       <div style="position: fixed; top:-15px;left: 41%; z-index: 10;">
@@ -45,7 +106,7 @@
         <img style="height: 38px; width: 38px;" src="./static/Logo.png">
       </div>
 
-      <div style="border-radius: 70px 70px 70px 70px; background: #ffffff; position: fixed; top:10px; right: 15px; z-index: 10;">
+      <div style="border-radius: 70px 70px 70px 70px; background: #ffffff; position: fixed; bottom:10px; right: 15px; z-index: 10;">
         <a href="https://github.com/matthew-boisvert/Cruz-Connections" target="_blank"> <img style="height: 45px; width: 45px;" src="./static/githubLogo.png"> </a>
       </div>
 
@@ -56,7 +117,6 @@
     </div>
     
   </div>
-
 
   <div id="3d-graph"></div>
   
