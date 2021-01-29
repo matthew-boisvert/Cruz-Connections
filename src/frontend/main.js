@@ -6,6 +6,8 @@ let Graph = ForceGraph3D();
 
 let allData;
 
+let graphDimensions = "3D";
+
 let currentSearchInput = "";
 let enteredSearchInput = "";
 
@@ -13,12 +15,10 @@ const visibleNodes = new Set();
 const visibleLinks = new Set();
 let visibleGraphData = {};
 
-let setMode = "add";
-// setMode: add, subtract, focus
-
 const highlightNodes = new Set();
 const highlightLinks = new Set();
 let selectedNode = null;
+let selectedExpansion = {nodes: [], links: []};
 
 let graphSpread = true;
 let maxSpreadVal = -1000;
@@ -37,7 +37,6 @@ request.onload = function()
     allData = request.response;
     
     visibleGraphData = getData(allData);
-    console.log(visibleGraphData);
 
     Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
@@ -45,13 +44,15 @@ request.onload = function()
     // .jsonUrl('./data.json')
     .nodeOpacity(1)
     .nodeAutoColorBy('group')
-    .linkOpacity(0.1)
-    .linkDirectionalArrowLength(3.5)
+    .linkOpacity(0.15)
+    .linkDirectionalArrowLength(4)
     .linkDirectionalArrowRelPos(1)
     .enableNodeDrag(false) //disable node dragging
     .linkWidth(link => highlightLinks.has(link) ? 4 : 2)
-    .linkDirectionalParticles(link => highlightLinks.has(link) ? 4 : 0)
-    .linkDirectionalParticleWidth(4)
+    .linkDirectionalParticles(link => highlightLinks.has(link) ? 2 : 0)
+    .linkDirectionalParticleWidth(5)
+    .linkDirectionalParticleSpeed(0.005)
+    .linkDirectionalParticleColor(() => 'yellow')
     .d3AlphaDecay(.05)
     .d3VelocityDecay(.4)
     .nodeThreeObject(node => {
@@ -63,45 +64,15 @@ request.onload = function()
     })
     // .onNodeClick(node => window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=`+node.id, '_blank'))
     .onNodeClick(node => {
-        let toUpdateGraph = false;
-
         const elem = document.getElementById('3d-graph');
         elem.style.cursor = node ? 'pointer' : null;
-        // no state change
-        if ((!node && !highlightNodes.size) ) return;
-        // || (node && selectedNode === node)
-        highlightNodes.clear();
-        highlightLinks.clear();
-        if (node) {
-            highlightNodes.add(node);
-            tree = getExpandedFromRoot(node);
-            tree['nodes'].forEach(node => {
-                if (!visibleNodes.has(node))
-                {
-                    toUpdateGraph = true;
-                    visibleNodes.add(node);
-                }
-                highlightNodes.add(node);
-            });
-            tree['links'].forEach(link => {
-                if (!visibleLinks.has(link))
-                {
-                    toUpdateGraph = true;
-                    visibleLinks.add(link);
-                }
-                highlightLinks.add(link);
-            });
-        }
 
-        selectedNode = node || null;
-
-        updateNav(node)
+        selectedNode = node;
+        updateNav(selectedNode)
         openNav();
-
-        if (toUpdateGraph) {updateVisualGraph()};
-        
-        updateHighlight();
-      })
+        selectedExpansion = getExpandedFromRoot(selectedNode);
+        updateSelected(node);
+    })
 
     Graph.d3Force('charge').strength(minSpreadVal);
 
@@ -125,7 +96,15 @@ this.addEventListener("keydown", (event) => {
     {
         let searchbarValue = document.getElementById('searchbar').value;
         enteredSearchInput = searchbarValue;
-        
+
+        if(enteredSearchInput == "") {
+            selectedNode = null;
+            highlightNodes.clear();
+            highlightLinks.clear();
+            closeNav();
+            updateHighlight();
+        }
+
         let foundResult = false;
         let foundNode = null;
 
@@ -140,60 +119,36 @@ this.addEventListener("keydown", (event) => {
 
         if(foundResult == true)
         {
-            let expansionResult = getExpandedFromRoot(foundNode);
-
-            if (setMode == "add" && !visibleNodes.has(enteredSearchInput))
-            {
-                expansionResult['nodes'].forEach(node => {
-                    visibleNodes.add(node);
-                });
-                expansionResult['links'].forEach(link => {
-                    visibleLinks.add(link);
-                });
-
-                // Final visibleLink adding of any possible links between all visible nodes
-                // allData['links'].forEach(link => {
-                //     if (visibleNodes.has(link.target) && visibleNodes.has(link.source))
-                //     {
-                //         visibleLinks.add(link);
-                //     }
-                // });
-
-                updateVisualGraph();
-            }
-
-            if (setMode == "subtract")
-            {
-                expansionResult['nodes'].forEach(node => {
-                    visibleNodes.delete(node);
-                    allData['links'].forEach(link => {
-                        if (link.source == node)
-                        {
-                            visibleLinks.delete(link);
-                        }
-                    });
-                });
-                expansionResult['links'].forEach(link => {
-                    visibleLinks.delete(link);
-                });
-
-                updateVisualGraph();
-            }
+            selectedNode = foundNode;
+            updateNav(selectedNode)
+            openNav();
+            selectedExpansion = getExpandedFromRoot(foundNode);
+            updateSelected(selectedNode);
         }
     }
 });
 
 function zoomOnNode(node) 
 {
-    // Copy pasted code from focus on node example
     const distance = 100;
+    const transitionTime = 2000;
     const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
+    if (graphDimensions == "3D") {
+        // Copy pasted code from focus on node example
 
-    Graph.cameraPosition(
-    { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }, // new position
-    node, // lookAt ({ x, y, z })
-    1000  // ms transition duration
-    );
+        Graph.cameraPosition(
+            { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }, // new position
+            node, // lookAt ({ x, y, z })
+            transitionTime  // ms transition duration
+        );
+    } else {
+        // Breaks when used in 2D
+        // Graph.cameraPosition(
+        //     { x: node.x, y: node.y, z: node.z}, // new position
+        //     { x: node.x, y: node.y, z: node.z}, // lookAt ({ x, y, z })
+        //     transitionTime  // ms transition duration
+        // );
+    }
 }
 
 function getExpandedFromRoot(node){
@@ -228,14 +183,45 @@ function getExpandedFromRoot(node){
 
 function addToSet() 
 {
-    setMode = "add";
-    console.log("addToSet");
+    selectedExpansion['nodes'].forEach(node => {
+        visibleNodes.add(node);
+    });
+    selectedExpansion['links'].forEach(link => {
+        visibleLinks.add(link);
+    });
+
+    selectedExpansion['nodes'].forEach(node => {
+        if (!visibleNodes.has(node))
+        {
+            visibleNodes.add(node);
+        }
+    });
+    selectedExpansion['links'].forEach(link => {
+        if (!visibleLinks.has(link))
+        {
+            visibleLinks.add(link);
+        }
+    });
+
+    updateVisualGraph();
 }
 
 function subtractToSet() 
 {
-    setMode = "subtract";
-    console.log("subtractToSet");
+    selectedExpansion['nodes'].forEach(node => {
+        visibleNodes.delete(node);
+        allData['links'].forEach(link => {
+            if (link.source == node)
+            {
+                visibleLinks.delete(link);
+            }
+        });
+    });
+    selectedExpansion['links'].forEach(link => {
+        visibleLinks.delete(link);
+    });
+
+    updateVisualGraph();
 }
 
 function resetGraph() 
@@ -324,3 +310,48 @@ function toggleNodeSpread() {
     updateVisualGraph();
 }
 
+function updateSelected(node)
+{
+    let toUpdateGraph = false;
+
+    // no state change
+    if ((!node && !highlightNodes.size) ) return;
+    // || (node && selectedNode === node)
+    highlightNodes.clear();
+    highlightLinks.clear();
+    if (node) {
+        highlightNodes.add(node);
+        tree = getExpandedFromRoot(node);
+        tree['nodes'].forEach(node => {
+            highlightNodes.add(node);
+        });
+        tree['links'].forEach(link => {
+            highlightLinks.add(link);
+        });
+    }
+
+    selectedNode = node || null;
+
+    document.getElementById('searchbar').value = selectedNode.id;
+
+    updateNav(node)
+    openNav();
+
+    if (toUpdateGraph) {updateVisualGraph()};
+    
+    updateHighlight();
+}
+
+function toggleGraphDimension()
+{
+    if(graphDimensions == "3D")
+    {
+        graphDimensions = "2D";
+        Graph.numDimensions(2);
+    }
+    else {
+        graphDimensions = "3D";
+        Graph.numDimensions(3);
+    }
+    
+}

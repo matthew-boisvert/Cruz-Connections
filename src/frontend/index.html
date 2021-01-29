@@ -23,17 +23,17 @@
     }
     
     .sidenav h1 {
-      /* padding: 8px 8px 8px 32px; */
+      padding: 8px 8px 8px 8px;
       text-align: center;
       text-decoration: none;
-      font-size: 30px;
+      font-size: 60px;
       color: #000000;
     }
 
     .sidenav input {
-      /* padding: 8px 8px 8px 32px; */
+      padding: 16px 16px 16px 16px;
       text-decoration: none;
-      font-size: 16px;
+      font-size: 20px;
       color: #000000;
     }
     
@@ -61,11 +61,13 @@
 <body>
   <div id="mySidenav" class="sidenav">
     <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-    <div style="text-align:center;">
+    <div style="text-align:left;">
       <h1 id="navTitle"></h1>
-      <input type="button" value="Link to course catalog" onclick="openCourseCatalog()">
-      <input type="button" value="Focus highlited nodes" onclick="focusHighlightedNodes()">
-      <input type="button" value="Zoom on selected node" onclick="zoomOnSelectedNode()">
+      <input type="button" value="Zoom on root" onclick="zoomOnSelectedNode()">
+      <input type="button" value="Focus on tree" onclick="focusHighlightedNodes()">
+      <input type="button" value="Add tree" onclick="addToSet()">
+      <input type="button" value="Subtract tree" onclick="subtractToSet()">
+      <input type="button" value="Link to course" onclick="openCourseCatalog()">
     </div>
   </div>
   <!-- <span style="font-size:30px;cursor:pointer; position: fixed; top: 0px; right: 0px; z-index: 10; background: #ffffff" onclick="openNav()">&#9776; open</span> -->
@@ -90,12 +92,11 @@
   
     <div style="position: fixed; top:12px;left: 1%; z-index: 10;">
       <div>
-        <input id="searchbar" type="text" name="search" placeholder="Search...">
-        <input type="button" value="Add" onclick="addToSet()">
-        <input type="button" value="Subtract" onclick="subtractToSet()">
-        <input type="button" value="Show All" onclick="resetGraph()">
-        <input type="button" value="Clear Graph" onclick="clearGraph()">
-        <input type="button" value="Toggle spread" onclick="toggleNodeSpread()">
+        <input id="searchbar" type="text" value="" name="search" placeholder="Search...">
+        <input type="button" value="All" onclick="resetGraph()">
+        <input type="button" value="Clear" onclick="clearGraph()">
+        <input type="button" value="Spread" onclick="toggleNodeSpread()">
+        <input type="button" value="3D" onclick="toggleGraphDimension()">
       </div>
       
       <div style="position: fixed; top:-15px;left: 41%; z-index: 10;">
