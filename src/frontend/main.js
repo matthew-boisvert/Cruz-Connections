@@ -49,8 +49,6 @@ request.onload = function()
     .linkDirectionalArrowRelPos(1)
     .enableNodeDrag(false) //disable node dragging
     .linkWidth(link => highlightLinks.has(link) ? 4 : 2)
-    .linkDirectionalParticles(link => highlightLinks.has(link) ? 2 : 0)
-    .linkDirectionalParticleWidth(5)
     .linkDirectionalParticleSpeed(0.005)
     .linkDirectionalParticleColor(() => 'yellow')
     .d3AlphaDecay(.05)
@@ -66,6 +64,7 @@ request.onload = function()
     .onNodeClick(node => {
         const elem = document.getElementById('3d-graph');
         elem.style.cursor = node ? 'pointer' : null;
+        if ((!node && !highlightNodes.size) || (node && hoverNode === node)) return;
 
         selectedNode = node;
         updateNav(selectedNode)
