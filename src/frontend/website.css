@@ -1,15 +1,13 @@
 .welcome-popup {
   position: fixed;
-  top: 50%;
-  left: 50%;
+  z-index: 12;
+  top: 0;
+  left: 0;
 
-  width: 500px;
-  height: 250px;
-  margin-top: -125px;
-  margin-left: -250px;
+  width: 100%;
+  height: 100%;
 
-  border: 3px solid #78b2a8;
-  background: rgba(217, 217, 217, 0.5);
+  background: #000000c2;
 }
 
 .welcome-popup .close-welcome {

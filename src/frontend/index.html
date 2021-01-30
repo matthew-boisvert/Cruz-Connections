@@ -44,18 +44,24 @@
 
   <!-- Main -->
 
-  <!-- <div class="welcome-popup" id="welcomepopup" style= "z-index: 9; display: block;">
-		<h1 class="popupitems">Welcome to Cruz Connections</h1>
-		<p class="popupitems">This app is an interactive 3D graph that allows you to see how courses
-		and departments at UCSC are conneced via prerequisites</p>
-		<button type="button" class ="close-welcome" onclick="closePopup()">Enter Cruz Connections</button>
-	</div>
-
-	<script>
-		function closePopup() {
-			document.getElementById("welcomepopup").style.display = "none";
-		}
-	</script> -->
+  <!-- <div class="welcome-popup" id="welcomepopup" style="z-index: 9; display: block;">,
+     -->
+  <div class="welcome-popup" id="welcomepopup" onclick="closePopup()">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content" style="padding: 12px;" onclick="event.stopPropagation()">
+        <h1 class="popupitems">Welcome to Cruz Connections!</h1>
+        <p class="popupitems">This app is an interactive 3D graph that allows you to see how courses
+          and departments at UCSC are connected via prerequisites.</p>
+        <button type="button" class="btn btn-primary fullwidth-button" style="border-radius: 4px;"
+          onclick="closePopup()">Enter</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    function closePopup() {
+      document.getElementById("welcomepopup").style.display = "none";
+    }
+  </script>
 
   <div style="position: fixed; top:12px;left: 1%; z-index: 10;">
     <div class="input-group mb-3">
