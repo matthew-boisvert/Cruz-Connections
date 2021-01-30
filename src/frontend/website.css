@@ -1,24 +1,100 @@
 .welcome-popup {
-	position: fixed;
-	border: 3px solid #78B2A8;
-	top: 50%;
-	left: 50%;
-	width: 500px;
-	height: 250px;
-	background: rgba(217, 217, 217, 0.5);
-	margin-top: -125px;
-	margin-left: -250px;
-	}
+  position: fixed;
+  top: 50%;
+  left: 50%;
+
+  width: 500px;
+  height: 250px;
+  margin-top: -125px;
+  margin-left: -250px;
+
+  border: 3px solid #78b2a8;
+  background: rgba(217, 217, 217, 0.5);
+}
 
 .welcome-popup .close-welcome {
-	background-color: #78B2A8;
-	color: black;
-	cursor: pointer;
-	width: 100%;
-	margin-bottom: 15px;
-	padding: 16px 20px
-	}
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 16px 20px;
+
+  cursor: pointer;
+
+  color: black;
+  background-color: #78b2a8;
+}
 
 .popupitems {
-	text-align: center;
-	}
+  text-align: center;
+}
+
+/* ----- SIDENAV ------- */
+body {
+  margin: 0;
+  padding: 0;
+
+  font-family: "Lato", sans-serif;
+}
+
+.sidenav {
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  right: 0;
+
+  overflow-x: hidden;
+
+  width: 0;
+  height: 100%;
+  padding-top: 60px;
+
+  transition: 0.5s;
+
+  background-color: rgb(255, 255, 255);
+}
+
+.sidenav h1 {
+  padding: 8px 8px 8px 8px;
+
+  text-align: center;
+  text-decoration: none;
+
+  color: #000000;
+
+  font-size: 60px;
+}
+
+.sidenav input {
+  padding: 16px 16px 16px 16px;
+
+  text-decoration: none;
+
+  color: #000000;
+
+  font-size: 20px;
+}
+
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+
+  margin-left: 50px;
+
+  font-size: 36px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {
+    padding-top: 15px;
+  }
+
+  .sidenav a {
+    font-size: 18px;
+  }
+}
+
+.fullwidth-button {
+  width: 100% !important;
+
+  border-radius: 0 !important;
+}
