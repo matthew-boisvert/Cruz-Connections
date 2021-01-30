@@ -71,6 +71,10 @@ request.onload = function () {
 
     Graph.d3Force('charge').strength(minSpreadVal);
 
+    window.onresize = function () {
+        Graph.height(window.innerHeight);
+        Graph.width(window.innerWidth);
+    }
 }
 
 function updateHighlight() {
