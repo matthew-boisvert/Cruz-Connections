@@ -30,7 +30,13 @@ body {
   margin: 0;
   padding: 0;
 
+  background-color: black;
+
   font-family: "Lato", sans-serif;
+}
+
+#3d-graph {
+  background-color: black;
 }
 
 .sidenav {

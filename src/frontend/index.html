@@ -43,25 +43,32 @@
 
 
   <!-- Main -->
-
-  <!-- <div class="welcome-popup" id="welcomepopup" style="z-index: 9; display: block;">,
-     -->
-  <div class="welcome-popup" id="welcomepopup" onclick="closePopup()">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content" style="padding: 12px;" onclick="event.stopPropagation()">
-        <h1 class="popupitems">Welcome to Cruz Connections!</h1>
-        <p class="popupitems">This app is an interactive 3D graph that allows you to see how courses
-          and departments at UCSC are connected via prerequisites.</p>
-        <button type="button" class="btn btn-primary fullwidth-button" style="border-radius: 4px;"
-          onclick="closePopup()">Enter</button>
-      </div>
-    </div>
-  </div>
   <script>
     function closePopup() {
       document.getElementById("welcomepopup").style.display = "none";
     }
   </script>
+  <div class="welcome-popup" id="welcomepopup" onclick="closePopup()">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content" style="padding: 12px;" onclick="event.stopPropagation()">
+        <div style="position: relative;margin: 12px auto;"><img
+            style="height: 38px; width: 38px;display:inline-block; margin: -18px 10px 0 0;" src="./static/Logo.png">
+          <h1
+            style="color: rgb(0, 109, 128);font-family: 'Yusei Magic', sans-serif;font-size: 2.4rem;display:inline-block;">
+            Cruz Connections
+          </h1>
+        </div>
+
+        <p class="popupitems">This app is an interactive 3D graph that allows you to see how courses
+          and departments at UCSC are connected via prerequisites.</p>
+        <h3 class="popupitems">Controls</h3>
+        <p class="popupitems"><b>Drag:</b> rotate | <b>Scroll:</b> zoom | <b>Right Click Drag:</b> pan</p>
+        <button type="button" class="btn btn-primary fullwidth-button" style="border-radius: 4px;"
+          onclick="closePopup()">Enter</button>
+      </div>
+    </div>
+  </div>
+
 
   <div style="position: fixed; top:12px;left: 1%; z-index: 10;">
     <div class="input-group mb-3">
