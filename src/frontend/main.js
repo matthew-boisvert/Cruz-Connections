@@ -7,6 +7,7 @@ let Graph = ForceGraph3D();
 let allData;
 
 let graphDimensions = "3D";
+let graphNodeText = true;
 
 let currentSearchInput = "";
 let enteredSearchInput = "";
@@ -47,6 +48,7 @@ request.onload = function () {
         .enableNodeDrag(false) //disable node dragging
         .linkWidth(link => highlightLinks.has(link) ? 4 : 2)
         .linkDirectionalParticleSpeed(0.005)
+        .linkDirectionalParticles(link => highlightLinks.has(link) ? 2 : 0)
         .linkDirectionalParticleColor(() => 'yellow')
         .d3AlphaDecay(.05)
         .d3VelocityDecay(.4)
@@ -60,13 +62,13 @@ request.onload = function () {
         .onNodeClick(node => {
             const elem = document.getElementById('3d-graph');
             elem.style.cursor = node ? 'pointer' : null;
-            if ((!node && !highlightNodes.size) || (node && hoverNode === node)) return;
+            if ((!node && !highlightNodes.size) || (node && selectedNode === node)) return;
 
             selectedNode = node;
             updateNav(selectedNode)
             openNav();
-            selectedExpansion = getExpandedFromRoot(selectedNode);
-            updateSelected(node);
+            // selectedExpansion = getExpandedFromRoot(selectedNode);
+            updateSelected(selectedNode);
         })
 
     Graph.d3Force('charge').strength(minSpreadVal);
@@ -262,16 +264,18 @@ function openCourseCatalog() {
 
 function focusHighlightedNodes() {
     let toUpdateGraph = false;
-    visibleNodes.forEach(node => {
-        if (!highlightNodes.has(node)) {
+    visibleNodes.clear();
+    visibleLinks.clear();
+    highlightNodes.forEach(node => {
+        if (!visibleNodes.has(node)) {
             toUpdateGraph = true;
-            visibleNodes.delete(node);
+            visibleNodes.add(node);
         }
     });
-    visibleLinks.forEach(link => {
-        if (!highlightLinks.has(link)) {
+    highlightLinks.forEach(link => {
+        if (!visibleLinks.has(link)) {
             toUpdateGraph = true;
-            visibleLinks.delete(link);
+            visibleLinks.add(link);
         }
     });
     if (toUpdateGraph) { updateVisualGraph() };
@@ -321,6 +325,23 @@ function updateSelected(node) {
 
     if (toUpdateGraph) { updateVisualGraph() };
 
+    if(!graphNodeText) {
+        Graph.nodeThreeObject(node => {
+            if(highlightNodes.has(node)) {
+                const sprite = new SpriteText(node.id);
+                sprite.material.depthWrite = false; // make sprite background transparent
+                sprite.color = node.color;
+                sprite.textHeight = 8;
+                return sprite;
+            } else {
+                return new THREE.Mesh(
+                    new THREE.SphereGeometry(5, 6, 6),
+                    new THREE.MeshBasicMaterial({ color: node.color })
+                )
+            }
+        })
+    }
+
     updateHighlight();
 }
 
@@ -332,5 +353,34 @@ function toggleGraphDimension() {
     else {
         graphDimensions = "3D";
         Graph.numDimensions(3);
+    }
+}
+
+function toggleNodeText() {
+    if (graphNodeText){
+        graphNodeText = false;
+        Graph.nodeThreeObject(node => {
+            if(highlightNodes.has(node)) {
+                const sprite = new SpriteText(node.id);
+                sprite.material.depthWrite = false; // make sprite background transparent
+                sprite.color = node.color;
+                sprite.textHeight = 8;
+                return sprite;
+            } else {
+                return new THREE.Mesh(
+                    new THREE.SphereGeometry(5, 6, 6),
+                    new THREE.MeshBasicMaterial({ color: node.color })
+                )
+            }
+        })
+    } else {
+        graphNodeText = true;
+        Graph.nodeThreeObject(node => {
+            const sprite = new SpriteText(node.id);
+            sprite.material.depthWrite = false; // make sprite background transparent
+            sprite.color = node.color;
+            sprite.textHeight = 8;
+            return sprite;
+        })
     }
 }
