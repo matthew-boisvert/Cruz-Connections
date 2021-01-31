@@ -18,7 +18,7 @@ let visibleGraphData = {};
 const highlightNodes = new Set();
 const highlightLinks = new Set();
 let selectedNode = null;
-let selectedExpansion = { nodes: [], links: [] };
+let selectedExpansion = {nodes: [], links: []};
 
 let graphSpread = true;
 let maxSpreadVal = -1000;
@@ -32,49 +32,50 @@ request.open('GET', requestURL);
 request.responseType = 'json';
 request.send();
 
-request.onload = function () {
+request.onload = function()
+{
     allData = request.response;
 
     visibleGraphData = getData(allData);
 
-    Graph = ForceGraph3D()(document.getElementById('3d-graph'))
-        .graphData(visibleGraphData)
-        .nodeOpacity(1)
-        .nodeAutoColorBy('group')
-        .linkOpacity(0.15)
-        .linkDirectionalArrowLength(4)
-        .linkDirectionalArrowRelPos(1)
-        .enableNodeDrag(false) //disable node dragging
-        .linkWidth(link => highlightLinks.has(link) ? 4 : 2)
-        .linkDirectionalParticleSpeed(0.005)
-        .linkDirectionalParticleColor(() => 'yellow')
-        .d3AlphaDecay(.05)
-        .d3VelocityDecay(.4)
-        .nodeThreeObject(node => {
-            const sprite = new SpriteText(node.id);
-            sprite.material.depthWrite = false; // make sprite background transparent
-            sprite.color = node.color;
-            sprite.textHeight = 8;
-            return sprite;
-        })
-        .onNodeClick(node => {
-            const elem = document.getElementById('3d-graph');
-            elem.style.cursor = node ? 'pointer' : null;
-            if ((!node && !highlightNodes.size) || (node && hoverNode === node)) return;
+    Graph = ForceGraph3D()
+    (document.getElementById('3d-graph'))
+    .graphData(visibleGraphData)
+    // .jsonUrl('./data.json')
+    .nodeOpacity(1)
+    .nodeAutoColorBy('group')
+    .linkOpacity(0.15)
+    .linkDirectionalArrowLength(4)
+    .linkDirectionalArrowRelPos(1)
+    .enableNodeDrag(false) //disable node dragging
+    .linkWidth(link => highlightLinks.has(link) ? 4 : 2)
+    .linkDirectionalParticles(link => highlightLinks.has(link) ? 2 : 0)
+    .linkDirectionalParticleWidth(5)
+    .linkDirectionalParticleSpeed(0.005)
+    .linkDirectionalParticleColor(() => 'yellow')
+    .d3AlphaDecay(.05)
+    .d3VelocityDecay(.4)
+    .nodeThreeObject(node => {
+        const sprite = new SpriteText(node.id);
+        sprite.material.depthWrite = false; // make sprite background transparent
+        sprite.color = node.color;
+        sprite.textHeight = 8;
+        return sprite;
+    })
+    // .onNodeClick(node => window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=`+node.id, '_blank'))
+    .onNodeClick(node => {
+        const elem = document.getElementById('3d-graph');
+        elem.style.cursor = node ? 'pointer' : null;
 
-            selectedNode = node;
-            updateNav(selectedNode)
-            openNav();
-            selectedExpansion = getExpandedFromRoot(selectedNode);
-            updateSelected(node);
-        })
+        selectedNode = node;
+        updateNav(selectedNode)
+        openNav();
+        selectedExpansion = getExpandedFromRoot(selectedNode);
+        updateSelected(node);
+    })
 
     Graph.d3Force('charge').strength(minSpreadVal);
 
-    window.onresize = function () {
-        Graph.height(window.innerHeight);
-        Graph.width(window.innerWidth);
-    }
 }
 
 function updateHighlight() {
@@ -89,46 +90,49 @@ function updateHighlight() {
     // .linkWidth(Graph.linkWidth())
 }
 
-function runSearch() {
-    let searchbarValue = document.getElementById('searchbar').value;
-    enteredSearchInput = searchbarValue;
-
-    if (enteredSearchInput == "") {
-        selectedNode = null;
-        highlightNodes.clear();
-        highlightLinks.clear();
-        closeNav();
-        updateHighlight();
-    }
-
-    let foundResult = false;
-    let foundNode = null;
-
-    // Search for node.id or department name
-    allData['nodes'].forEach(node => {
-        if (node.id.toLowerCase() == enteredSearchInput.toLowerCase()) {
-            foundNode = node;
-            foundResult = true;
-        }
-    });
-
-    if (foundResult == true) {
-        selectedNode = foundNode;
-        updateNav(selectedNode)
-        openNav();
-        selectedExpansion = getExpandedFromRoot(foundNode);
-        updateSelected(selectedNode);
-    }
-}
 
 this.addEventListener("keydown", (event) => {
-    if (event.code == 'Enter') runSearch();
+    if(event.code == 'Enter')
+    {
+        let searchbarValue = document.getElementById('searchbar').value;
+        enteredSearchInput = searchbarValue;
+
+        if(enteredSearchInput == "") {
+            selectedNode = null;
+            highlightNodes.clear();
+            highlightLinks.clear();
+            closeNav();
+            updateHighlight();
+        }
+
+        let foundResult = false;
+        let foundNode = null;
+
+        // Search for node.id or department name
+        allData['nodes'].forEach(node => {
+            if(node.id.toLowerCase() == enteredSearchInput.toLowerCase())
+            {
+                foundNode = node;
+                foundResult = true;
+            }
+        });
+
+        if(foundResult == true)
+        {
+            selectedNode = foundNode;
+            updateNav(selectedNode)
+            openNav();
+            selectedExpansion = getExpandedFromRoot(foundNode);
+            updateSelected(selectedNode);
+        }
+    }
 });
 
-function zoomOnNode(node) {
+function zoomOnNode(node)
+{
     const distance = 100;
     const transitionTime = 2000;
-    const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+    const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
     if (graphDimensions == "3D") {
         // Copy pasted code from focus on node example
 
@@ -147,7 +151,7 @@ function zoomOnNode(node) {
     }
 }
 
-function getExpandedFromRoot(node) {
+function getExpandedFromRoot(node){
     let resultNodes = [];
     let resultLinks = [];
     let stack = [];
@@ -162,7 +166,8 @@ function getExpandedFromRoot(node) {
         }
     });
 
-    while (stack.length != 0) {
+    while (stack.length != 0)
+    {
         let poppedNode = stack.pop();
         allData['links'].forEach(link => {
             if (link.target == poppedNode && !resultNodes.includes(link.source)) {
@@ -173,10 +178,11 @@ function getExpandedFromRoot(node) {
         });
     }
 
-    return { nodes: resultNodes, links: resultLinks };
+    return {nodes: resultNodes, links: resultLinks};
 }
 
-function addToSet() {
+function addToSet()
+{
     selectedExpansion['nodes'].forEach(node => {
         visibleNodes.add(node);
     });
@@ -185,12 +191,14 @@ function addToSet() {
     });
 
     selectedExpansion['nodes'].forEach(node => {
-        if (!visibleNodes.has(node)) {
+        if (!visibleNodes.has(node))
+        {
             visibleNodes.add(node);
         }
     });
     selectedExpansion['links'].forEach(link => {
-        if (!visibleLinks.has(link)) {
+        if (!visibleLinks.has(link))
+        {
             visibleLinks.add(link);
         }
     });
@@ -198,11 +206,13 @@ function addToSet() {
     updateVisualGraph();
 }
 
-function subtractToSet() {
+function subtractToSet()
+{
     selectedExpansion['nodes'].forEach(node => {
         visibleNodes.delete(node);
         allData['links'].forEach(link => {
-            if (link.source == node) {
+            if (link.source == node)
+            {
                 visibleLinks.delete(link);
             }
         });
@@ -214,19 +224,22 @@ function subtractToSet() {
     updateVisualGraph();
 }
 
-function resetGraph() {
+function resetGraph()
+{
     Graph.graphData(getData(allData))
-        .nodeAutoColorBy('group')
-        .zoomToFit();
+    .nodeAutoColorBy('group')
+    .zoomToFit();
 }
 
-function clearGraph() {
+function clearGraph()
+{
     visibleNodes.clear();
     visibleLinks.clear();
     updateVisualGraph();
 }
 
-function getData(data) {
+function getData(data)
+{
     data['nodes'].forEach(node => {
         visibleNodes.add(node);
     });
@@ -235,11 +248,12 @@ function getData(data) {
         visibleLinks.add(link);
     });
 
-    return { nodes: Array.from(visibleNodes), links: Array.from(visibleLinks) };
+    return {nodes: Array.from(visibleNodes), links: Array.from(visibleLinks)};
 }
 
-function updateVisualGraph() {
-    Graph.graphData({ nodes: Array.from(visibleNodes), links: Array.from(visibleLinks) });
+function updateVisualGraph()
+{
+    Graph.graphData({nodes: Array.from(visibleNodes), links: Array.from(visibleLinks)});
     Graph.nodeAutoColorBy('group');
 }
 
@@ -257,24 +271,26 @@ function updateNav(node) {
 }
 
 function openCourseCatalog() {
-    window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=` + selectedNode.id, '_blank');
+    window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=`+selectedNode.id, '_blank');
 }
 
 function focusHighlightedNodes() {
     let toUpdateGraph = false;
     visibleNodes.forEach(node => {
-        if (!highlightNodes.has(node)) {
+        if(!highlightNodes.has(node))
+        {
             toUpdateGraph = true;
             visibleNodes.delete(node);
         }
     });
     visibleLinks.forEach(link => {
-        if (!highlightLinks.has(link)) {
+        if(!highlightLinks.has(link))
+        {
             toUpdateGraph = true;
             visibleLinks.delete(link);
         }
     });
-    if (toUpdateGraph) { updateVisualGraph() };
+    if (toUpdateGraph) {updateVisualGraph()};
 }
 
 function zoomOnSelectedNode() {
@@ -286,18 +302,20 @@ function toggleNodeSpread() {
         Graph.d3Force('charge').strength(maxSpreadVal);
         graphSpread = false;
     }
-    else {
+    else
+    {
         Graph.d3Force('charge').strength(minSpreadVal);
         graphSpread = true;
     }
     updateVisualGraph();
 }
 
-function updateSelected(node) {
+function updateSelected(node)
+{
     let toUpdateGraph = false;
 
     // no state change
-    if ((!node && !highlightNodes.size)) return;
+    if ((!node && !highlightNodes.size) ) return;
     // || (node && selectedNode === node)
     highlightNodes.clear();
     highlightLinks.clear();
@@ -319,13 +337,15 @@ function updateSelected(node) {
     updateNav(node)
     openNav();
 
-    if (toUpdateGraph) { updateVisualGraph() };
+    if (toUpdateGraph) {updateVisualGraph()};
 
     updateHighlight();
 }
 
-function toggleGraphDimension() {
-    if (graphDimensions == "3D") {
+function toggleGraphDimension()
+{
+    if(graphDimensions == "3D")
+    {
         graphDimensions = "2D";
         Graph.numDimensions(2);
     }
@@ -333,4 +353,5 @@ function toggleGraphDimension() {
         graphDimensions = "3D";
         Graph.numDimensions(3);
     }
+
 }
