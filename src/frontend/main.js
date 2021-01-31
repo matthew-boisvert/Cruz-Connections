@@ -7,6 +7,7 @@ let Graph = ForceGraph3D();
 let allData;
 
 let graphDimensions = "3D";
+let graphNodeText = true;
 
 let currentSearchInput = "";
 let enteredSearchInput = "";
@@ -66,13 +67,15 @@ request.onload = function()
     .onNodeClick(node => {
         const elem = document.getElementById('3d-graph');
         elem.style.cursor = node ? 'pointer' : null;
+        if ((!node && !highlightNodes.size) || (node && selectedNode === node)) return;
 
         selectedNode = node;
         updateNav(selectedNode)
         openNav();
-        selectedExpansion = getExpandedFromRoot(selectedNode);
-        updateSelected(node);
+        // selectedExpansion = getExpandedFromRoot(selectedNode);
+        updateSelected(selectedNode);
     })
+
 
     Graph.d3Force('charge').strength(minSpreadVal);
 
@@ -94,39 +97,44 @@ function updateHighlight() {
 this.addEventListener("keydown", (event) => {
     if(event.code == 'Enter')
     {
-        let searchbarValue = document.getElementById('searchbar').value;
-        enteredSearchInput = searchbarValue;
-
-        if(enteredSearchInput == "") {
-            selectedNode = null;
-            highlightNodes.clear();
-            highlightLinks.clear();
-            closeNav();
-            updateHighlight();
-        }
-
-        let foundResult = false;
-        let foundNode = null;
-
-        // Search for node.id or department name
-        allData['nodes'].forEach(node => {
-            if(node.id.toLowerCase() == enteredSearchInput.toLowerCase())
-            {
-                foundNode = node;
-                foundResult = true;
-            }
-        });
-
-        if(foundResult == true)
-        {
-            selectedNode = foundNode;
-            updateNav(selectedNode)
-            openNav();
-            selectedExpansion = getExpandedFromRoot(foundNode);
-            updateSelected(selectedNode);
-        }
+        runSearch();
     }
 });
+
+function runSearch()
+{
+    let searchbarValue = document.getElementById('searchbar').value;
+    enteredSearchInput = searchbarValue;
+
+    if(enteredSearchInput == "") {
+        selectedNode = null;
+        highlightNodes.clear();
+        highlightLinks.clear();
+        closeNav();
+        updateHighlight();
+    }
+
+    let foundResult = false;
+    let foundNode = null;
+
+    // Search for node.id or department name
+    allData['nodes'].forEach(node => {
+        if(node.id.toLowerCase() == enteredSearchInput.toLowerCase())
+        {
+            foundNode = node;
+            foundResult = true;
+        }
+    });
+
+    if(foundResult == true)
+    {
+        selectedNode = foundNode;
+        updateNav(selectedNode)
+        openNav();
+        selectedExpansion = getExpandedFromRoot(foundNode);
+        updateSelected(selectedNode);
+    }
+}
 
 function zoomOnNode(node)
 {
@@ -339,6 +347,23 @@ function updateSelected(node)
 
     if (toUpdateGraph) {updateVisualGraph()};
 
+    if(!graphNodeText) {
+        Graph.nodeThreeObject(node => {
+            if(highlightNodes.has(node)) {
+                const sprite = new SpriteText(node.id);
+                sprite.material.depthWrite = false; // make sprite background transparent
+                sprite.color = node.color;
+                sprite.textHeight = 8;
+                return sprite;
+            } else {
+                return new THREE.Mesh(
+                    new THREE.SphereGeometry(5, 6, 6),
+                    new THREE.MeshBasicMaterial({ color: node.color })
+                )
+            }
+        })
+    }
+
     updateHighlight();
 }
 
@@ -354,4 +379,33 @@ function toggleGraphDimension()
         Graph.numDimensions(3);
     }
 
+}
+
+function toggleNodeText() {
+    if (graphNodeText){
+        graphNodeText = false;
+        Graph.nodeThreeObject(node => {
+            if(highlightNodes.has(node)) {
+                const sprite = new SpriteText(node.id);
+                sprite.material.depthWrite = false; // make sprite background transparent
+                sprite.color = node.color;
+                sprite.textHeight = 8;
+                return sprite;
+            } else {
+                return new THREE.Mesh(
+                    new THREE.SphereGeometry(5, 6, 6),
+                    new THREE.MeshBasicMaterial({ color: node.color })
+                )
+            }
+        })
+    } else {
+        graphNodeText = true;
+        Graph.nodeThreeObject(node => {
+            const sprite = new SpriteText(node.id);
+            sprite.material.depthWrite = false; // make sprite background transparent
+            sprite.color = node.color;
+            sprite.textHeight = 8;
+            return sprite;
+        })
+    }
 }
