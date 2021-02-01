@@ -25,6 +25,8 @@ let graphSpread = true;
 let maxSpreadVal = -1000;
 let minSpreadVal = -200;
 
+var firstAutocompleteHitStr = "";
+
 function hasNumber(myString) {
     return /\d/.test(myString);
 }
@@ -74,7 +76,7 @@ const autoCompleteJS = new autoComplete({
         const result = document.createElement("li");
         result.setAttribute("class", "no_result");
         result.setAttribute("tabindex", "1");
-        result.innerHTML = `<span style="display: flex; align-items: center; font-weight: 100; color: rgba(0,0,0,.2);">Found No Results for "${dataFeedback.query}"</span>`;
+        result.innerHTML = `<span style="display: flex; align-items: center; font-weight: 100;">Found No Results for "${dataFeedback.query}"</span>`;
         document.querySelector(`#${autoCompleteJS.resultsList.idName}`).appendChild(result);
     },
     onSelection: (feedback) => {
@@ -89,6 +91,14 @@ const autoCompleteJS = new autoComplete({
     },
 });
 console.log(autoCompleteJS)
+
+document.querySelector("#searchbar").addEventListener("results", function (event) {
+    console.log(event.detail);
+    if (event.detail.results && event.detail.results.length > 0)
+        firstAutocompleteHitStr = event.detail.results[0].value.id;
+    else firstAutocompleteHitStr = "";
+});
+
 // Get JSON data: https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON
 let requestURL = './data.json';
 let request = new XMLHttpRequest();
@@ -105,7 +115,7 @@ request.onload = function()
 
     Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
-    .graphData(visibleGraphData)
+    // .graphData(visibleGraphData)
     // .jsonUrl('./data.json')
     .nodeOpacity(1)
     .nodeAutoColorBy('group')
@@ -165,6 +175,7 @@ function updateHighlight() {
 this.addEventListener("keydown", (event) => {
     if(event.code == 'Enter')
     {
+        document.querySelector("#searchbar").value = firstAutocompleteHitStr
         runSearch();
     }
 });
@@ -350,7 +361,7 @@ function openCourseCatalog() {
     window.open(`https://catalog.ucsc.edu/Current/General-Catalog/Search-Results?q=`+selectedNode.id, '_blank');
 }
 
-unction focusHighlightedNodes() {
+function focusHighlightedNodes() {
     let toUpdateGraph = false;
     visibleNodes.forEach(node => {
         if(!highlightNodes.has(node))
