@@ -25,6 +25,70 @@ let graphSpread = true;
 let maxSpreadVal = -1000;
 let minSpreadVal = -200;
 
+function hasNumber(myString) {
+    return /\d/.test(myString);
+}
+
+const autoCompleteJS = new autoComplete({
+    name: "Search",
+    selector: "#searchbar",
+    data: {
+        src: async function () {
+            // Fetch External Data Source
+            const source = await fetch("./data.json");
+            const data = await source.json();
+            // Post Loading placeholder text
+            document.querySelector("#searchbar").setAttribute("placeholder", autoCompleteJS.placeHolder);
+            // Returns Fetched data
+            return data.nodes;
+        },
+        key: ["id"],
+    },
+    trigger: {
+        event: ["input", "focus", "click"],
+    },
+    placeHolder: "Find a class or department...",
+    threshold: 1,                        // Min. Chars length to start Engine | (Optional)
+    debounce: 300,                       // Post duration for engine to start | (Optional)
+    searchEngine: "loose",
+    highlight: true,
+    maxResults: 10,
+    resultItem: {
+        content: (data, element) => {
+            // Modify Results Item Style
+            element.style = "display: flex; justify-content: space-between;";
+            // Modify Results Item Content
+            element.innerHTML = `
+            <span style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                ${data.match}
+            </span>
+            <span style="display: flex; align-items: center; font-size: 13px; font-weight: 100; text-transform: uppercase; color: rgba(0,0,0,.8);">
+                ${hasNumber(data.value.id) ? "class" : "department"}
+            </span>`;
+        },
+    },
+    noResults: (dataFeedback, generateList) => {
+        // Generate autoComplete List
+        generateList(autoCompleteJS, dataFeedback, dataFeedback.results);
+        // No Results List Item
+        const result = document.createElement("li");
+        result.setAttribute("class", "no_result");
+        result.setAttribute("tabindex", "1");
+        result.innerHTML = `<span style="display: flex; align-items: center; font-weight: 100; color: rgba(0,0,0,.2);">Found No Results for "${dataFeedback.query}"</span>`;
+        document.querySelector(`#${autoCompleteJS.resultsList.idName}`).appendChild(result);
+    },
+    onSelection: (feedback) => {
+        document.querySelector("#searchbar").blur();
+        // Prepare User's Selected Value
+        const selection = feedback.selection.value[feedback.selection.key];
+        // Replace Input value with the selected value
+        document.querySelector("#searchbar").value = selection;
+        // Console log autoComplete data feedback
+        runSearch();
+        console.log(feedback);
+    },
+});
+console.log(autoCompleteJS)
 // Get JSON data: https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON
 let requestURL = './data.json';
 let request = new XMLHttpRequest();
@@ -39,7 +103,7 @@ request.onload = function () {
     visibleGraphData = getData(allData);
 
     Graph = ForceGraph3D()(document.getElementById('3d-graph'))
-        .graphData(visibleGraphData)
+        // .graphData(visibleGraphData)
         .nodeOpacity(1)
         .nodeAutoColorBy('group')
         .linkOpacity(0.15)
@@ -72,11 +136,12 @@ request.onload = function () {
         })
 
     Graph.d3Force('charge').strength(minSpreadVal);
-
+    document.getElementById("3d-graph").style.visibility = "visible"
     window.onresize = function () {
         Graph.height(window.innerHeight);
         Graph.width(window.innerWidth);
     }
+
 }
 
 function updateHighlight() {
@@ -325,9 +390,9 @@ function updateSelected(node) {
 
     if (toUpdateGraph) { updateVisualGraph() };
 
-    if(!graphNodeText) {
+    if (!graphNodeText) {
         Graph.nodeThreeObject(node => {
-            if(highlightNodes.has(node)) {
+            if (highlightNodes.has(node)) {
                 const sprite = new SpriteText(node.id);
                 sprite.material.depthWrite = false; // make sprite background transparent
                 sprite.color = node.color;
@@ -357,10 +422,10 @@ function toggleGraphDimension() {
 }
 
 function toggleNodeText() {
-    if (graphNodeText){
+    if (graphNodeText) {
         graphNodeText = false;
         Graph.nodeThreeObject(node => {
-            if(highlightNodes.has(node)) {
+            if (highlightNodes.has(node)) {
                 const sprite = new SpriteText(node.id);
                 sprite.material.depthWrite = false; // make sprite background transparent
                 sprite.color = node.color;

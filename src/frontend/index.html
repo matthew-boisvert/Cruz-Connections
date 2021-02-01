@@ -1,7 +1,7 @@
 <head>
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="website.css">
+  <link rel="stylesheet" type="text/css" href="website.css">
   <script src="./three.js"></script>
   <script src="./three-spritetext.js"></script>
 
@@ -68,21 +68,17 @@
       </div>
     </div>
   </div>
-
-
-  <div style="position: fixed; top:12px;left: 1%; z-index: 10;">
+  <div id="searchbar_container">
     <div class="input-group mb-3">
-      <input type="text" class="form-control" id="searchbar" type="text" name="search" placeholder="Search...">
-      <button type="button" class="btn btn-primary">
-        <i class="fas" onclick="runSearch()">GO</i>
-      </button>
+      <input type="text" id="searchbar" class="form-control" placeholder="Loading..." type="text" tabindex="1" dir="ltr"
+        spellcheck="false" autocorrect="off" autocomplete="off" autocapitalize="off" maxlength="200">
     </div>
-    <button type="button" class="btn btn-primary" onclick="resetGraph()">All</button>
-    <button type="button" class="btn btn-primary" onclick="clearGraph()">Clear</button>
-    <button type="button" class="btn btn-primary" onclick="toggleNodeSpread()">Spread</button>
-    <button type="button" class="btn btn-primary" onclick="toggleGraphDimension()">3D/2D</button>
-    <button type="button" class="btn btn-primary" onclick="toggleNodeText()">text/ball</button>
-  </div>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="resetGraph()">All</button>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="clearGraph()">Clear</button>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="toggleNodeSpread()">Spread</button>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="toggleGraphDimension()">3D/2D</button>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="toggleNodeText()">text/ball</button>
+    </div>
 
   <div style="position: fixed;bottom: 0px;left: 60px;z-index: 10;">
     <h1 style="color: rgb(0, 109, 128);font-family: 'Yusei Magic', sans-serif;font-size: 2.4rem;">Cruz Connections</h1>
@@ -104,6 +100,6 @@
       </div> -->
 
   <div id="3d-graph"></div>
-
-  <script src="./main.js"></script>
+  <script src="./js/autoComplete.js"></script>
+<script src="./main.js"></script>
 </body>
