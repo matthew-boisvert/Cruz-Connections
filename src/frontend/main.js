@@ -87,13 +87,10 @@ const autoCompleteJS = new autoComplete({
         document.querySelector("#searchbar").value = selection;
         // Console log autoComplete data feedback
         runSearch();
-        console.log(feedback);
     },
 });
-console.log(autoCompleteJS)
 
 document.querySelector("#searchbar").addEventListener("results", function (event) {
-    console.log(event.detail);
     if (event.detail.results && event.detail.results.length > 0)
         firstAutocompleteHitStr = event.detail.results[0].value.id;
     else firstAutocompleteHitStr = "";
@@ -146,7 +143,7 @@ request.onload = function()
         selectedNode = node;
         updateNav(selectedNode)
         openNav();
-        // selectedExpansion = getExpandedFromRoot(selectedNode);
+        selectedExpansion = getExpandedFromRoot(selectedNode);
         updateSelected(selectedNode);
     })
 
@@ -399,8 +396,6 @@ function toggleNodeSpread() {
 
 function updateSelected(node)
 {
-    let toUpdateGraph = false;
-
     // no state change
     if ((!node && !highlightNodes.size) ) return;
     // || (node && selectedNode === node)
@@ -416,6 +411,7 @@ function updateSelected(node)
             highlightLinks.add(link);
         });
     }
+    
 
     selectedNode = node || null;
 
@@ -424,40 +420,8 @@ function updateSelected(node)
     updateNav(node)
     openNav();
 
-    if (toUpdateGraph) {updateVisualGraph()};
-
-    if(!graphNodeText) {
-        Graph.nodeThreeObject(node => {
-            if(highlightNodes.has(node)) {
-                const sprite = new SpriteText(node.id);
-                sprite.material.depthWrite = false; // make sprite background transparent
-                sprite.color = node.color;
-                sprite.textHeight = 8;
-                return sprite;
-            } else {
-                return new THREE.Mesh(
-                    new THREE.SphereGeometry(5, 6, 6),
-                    new THREE.MeshBasicMaterial({ color: node.color })
-                )
-            }
-        })
-    }
-
     if (!graphNodeText) {
-        Graph.nodeThreeObject(node => {
-            if (highlightNodes.has(node)) {
-                const sprite = new SpriteText(node.id);
-                sprite.material.depthWrite = false; // make sprite background transparent
-                sprite.color = node.color;
-                sprite.textHeight = 8;
-                return sprite;
-            } else {
-                return new THREE.Mesh(
-                    new THREE.SphereGeometry(5, 6, 6),
-                    new THREE.MeshBasicMaterial({ color: node.color })
-                )
-            }
-        })
+        updateBallText();
     }
 
     updateHighlight();
@@ -480,20 +444,7 @@ function toggleGraphDimension()
 function toggleNodeText() {
     if (graphNodeText){
         graphNodeText = false;
-        Graph.nodeThreeObject(node => {
-            if(highlightNodes.has(node)) {
-                const sprite = new SpriteText(node.id);
-                sprite.material.depthWrite = false; // make sprite background transparent
-                sprite.color = node.color;
-                sprite.textHeight = 8;
-                return sprite;
-            } else {
-                return new THREE.Mesh(
-                    new THREE.SphereGeometry(5, 6, 6),
-                    new THREE.MeshBasicMaterial({ color: node.color })
-                )
-            }
-        })
+        updateBallText();
     } else {
         graphNodeText = true;
         Graph.nodeThreeObject(node => {
@@ -504,4 +455,22 @@ function toggleNodeText() {
             return sprite;
         })
     }
+}
+
+function updateBallText()
+{
+    Graph.nodeThreeObject(node => {
+        if(highlightNodes.has(node)) {
+            const sprite = new SpriteText(node.id);
+            sprite.material.depthWrite = false; // make sprite background transparent
+            sprite.color = node.color;
+            sprite.textHeight = 8;
+            return sprite;
+        } else {
+            return new THREE.Mesh(
+                new THREE.SphereGeometry(5, 6, 6),
+                new THREE.MeshBasicMaterial({ color: node.color })
+            )
+        }
+    })
 }
