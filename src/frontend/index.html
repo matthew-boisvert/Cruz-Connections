@@ -1,64 +1,99 @@
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="website.css">
-
 <head>
-    <style> body { margin: 0; } </style>
-  
-    <script src="./three.js"></script>
-    <script src="./three-spritetext.js"></script>
-  
-    <script src="./3d-force-graph.js"></script>
-    
-  </head>
-  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="website.css">
+  <script src="./three.js"></script>
+  <script src="./three-spritetext.js"></script>
+  <script src="./3d-force-graph.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"
+    integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js"
+    integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj"
+    crossorigin="anonymous"></script>
+</head>
+
 <body>
-	<div class="welcome-popup" id="welcomepopup" style= "z-index: 9; display: block;">
-		<h1 class="popupitems">Welcome to Cruz Connections</h1>
-		<p class="popupitems">This app is an interactive 3D graph that allows you to see how courses
-		and departments at UCSC are conneced via prerequisites</p>
-		<button type="button" class ="close-welcome" onclick="closePopup()">Enter Cruz Connections</button>
-	</div>
 
-	<script>
-		function closePopup() {
-			document.getElementById("welcomepopup").style.display = "none";
-		}	
-	</script>
 
-  <div style="">
-  
-    <div style="position: fixed; top:12px;left: 1%; z-index: 10;">
-      <div>
-        <input id="searchbar" type="text" name="search" placeholder="Search...">
-        <input type="button" value="Add" onclick="addToSet()">
-        <input type="button" value="Subtract" onclick="subtractToSet()">
-        <input type="button" value="Show All" onclick="resetGraph()">
-        <input type="button" value="Clear Graph" onclick="clearGraph()">
-      </div>
-      
-      <div style="position: fixed; top:-15px;left: 41%; z-index: 10;">
-        <h1 style="color: rgb(0, 109, 128); font-family: 'Yusei Magic', sans-serif; ">Cruz Connections</h1>
-      </div>
-      
-      <div style="border-radius: 100px 100px 100px 100px; padding: 3px; background: rgb(0, 109, 128); position: fixed; top:10px; right: 38.75%; z-index: 10;">
-        <img style="height: 38px; width: 38px;" src="./static/Logo.png">
-      </div>
+  <!-- Sidebar from https://www.w3schools.com/howto/howto_js_sidenav.asp-->
 
-      <div style="border-radius: 70px 70px 70px 70px; background: #ffffff; position: fixed; top:10px; right: 15px; z-index: 10;">
-        <a href="https://github.com/matthew-boisvert/Cruz-Connections" target="_blank"> <img style="height: 45px; width: 45px;" src="./static/githubLogo.png"> </a>
-      </div>
-
-      <!-- <div style="position: fixed; top:-15px;left: 40%; z-index: 10;">
-        <h1 style="color: rgb(0, 109, 128); ">Made by </h1>
-      </div> -->
-
+  <div id="mySidenav" class="sidenav">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <div style="text-align:left;">
+      <h1 id="navTitle"></h1>
+      <button type="button" class="btn btn-outline-primary fullwidth-button" onclick="zoomOnSelectedNode()">Zoom on
+        root</button>
+      <button type="button" class="btn btn-outline-primary fullwidth-button" onclick="focusHighlightedNodes()">Focus on
+        tree</button>
+      <button type="button" class="btn btn-outline-primary fullwidth-button" onclick="addToSet()">Add tree</button>
+      <button type="button" class="btn btn-outline-primary fullwidth-button" onclick="subtractToSet()">Subtract
+        tree</button>
+      <button type="button" class="btn btn-outline-primary fullwidth-button" onclick="openCourseCatalog()">Link to
+        course</button>
     </div>
-    
   </div>
+  <!-- <span style="font-size:30px;cursor:pointer; position: fixed; top: 0px; right: 0px; z-index: 10; background: #ffffff" onclick="openNav()">&#9776; open</span> -->
+
+  <div class="welcome-popup" id="welcomepopup" onclick="document.getElementById('welcomepopup').style.display = 'none';">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content" style="padding: 12px;" onclick="event.stopPropagation()">
+        <div style="position: relative;margin: 12px auto;"><img
+            style="height: 38px; width: 38px;display:inline-block; margin: -18px 10px 0 0;" src="./static/Logo.png">
+          <h1
+            style="color: rgb(0, 109, 128);font-family: 'Yusei Magic', sans-serif;font-size: 2.4rem;display:inline-block;">
+            Cruz Connections
+          </h1>
+        </div>
+
+        <p class="popupitems">This app is an interactive 3D graph that allows you to see how courses
+          and departments at UCSC are connected via prerequisites.</p>
+        <h3 class="popupitems">Controls</h3>
+        <p class="popupitems"><b>Drag:</b> rotate | <b>Scroll:</b> zoom | <b>Right Click Drag:</b> pan</p>
+        <button type="button" class="btn btn-primary fullwidth-button" style="border-radius: 4px;"
+        onclick="document.getElementById('welcomepopup').style.display = 'none';">Enter</button>
+      </div>
+    </div>
+  </div>
+  <div id="searchbar_container">
+    <div class="input-group mb-3">
+      <input type="text" id="searchbar" class="form-control" placeholder="Loading..." type="text" tabindex="1" dir="ltr"
+        spellcheck="false" autocorrect="off" autocomplete="off" autocapitalize="off" maxlength="200">
+    </div>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="resetGraph()">All</button>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="clearGraph()">Clear</button>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="toggleNodeSpread()">Spread</button>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="toggleGraphDimension()">3D/2D</button>
+    <button type="button" class="btn btn-primary" tabindex="3" onclick="toggleNodeText()">text/ball</button>
+  </div>
+
+  <div style="position: fixed;bottom: 0px;left: 60px;z-index: 10;">
+    <h1 style="color: rgb(0, 109, 128);font-family: 'Yusei Magic', sans-serif;font-size: 2.4rem;">Cruz Connections</h1>
+  </div>
+
+  <div
+    style="border-radius: 100px 100px 100px 100px;padding: 3px;background: rgb(0, 109, 128);position: fixed;bottom:6px;left: 6px;z-index: 10;">
+    <img style="height: 38px; width: 38px;" src="./static/Logo.png">
+  </div>
+
+  <div
+    style="border-radius: 70px 70px 70px 70px; background: #ffffff; position: fixed; bottom:10px; right: 15px; z-index: 10;">
+    <a href="https://github.com/matthew-boisvert/Cruz-Connections" target="_blank"> <img
+        style="height: 45px; width: 45px;" src="./static/githubLogo.png"> </a>
+  </div>
+
+    <!-- <span style="position: fixed; bottom:5px;left: 90px;font-size: 6px; z-index: 10;color:#fff; ">Made by Evan Li, Matthew
+              Boisvert,
+              Daniel,
+              & Kyle Worcester-Moore</span> -->
 
 
   <div id="3d-graph"></div>
-  
+  <script src="./js/autoComplete.min.js"></script>
   <script src="./main.js"></script>
 </body>
