@@ -115,7 +115,7 @@ request.onload = function()
 
     Graph = ForceGraph3D()
     (document.getElementById('3d-graph'))
-    // .graphData(visibleGraphData)
+        .graphData(visibleGraphData)
     // .jsonUrl('./data.json')
     .nodeOpacity(1)
     .nodeAutoColorBy('group')
