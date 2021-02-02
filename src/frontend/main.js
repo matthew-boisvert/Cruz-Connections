@@ -89,6 +89,11 @@ const autoCompleteJS = new autoComplete({
         runSearch();
         console.log(feedback);
     },
+    sort: (a, b) => {                    // Sort rendered results ascendingly | (Optional)
+        if (a.value.id.length < b.value.id.length && a.value.id <= b.value.id) return -1;
+        if (a.value.id.length > b.value.id.length && a.value.id >= b.value.id) return 1;
+        return 0;
+    },
 });
 console.log(autoCompleteJS)
 
