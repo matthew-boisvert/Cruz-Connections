@@ -52,7 +52,7 @@ const autoCompleteJS = new autoComplete({
     placeHolder: "Find a class or department...",
     threshold: 1,                        // Min. Chars length to start Engine | (Optional)
     debounce: 300,                       // Post duration for engine to start | (Optional)
-    searchEngine: "loose",
+    searchEngine: "strict",
     highlight: true,
     maxResults: 10,
     resultItem: {
@@ -89,8 +89,10 @@ const autoCompleteJS = new autoComplete({
         runSearch();
     },
     sort: (a, b) => {                    // Sort rendered results ascendingly | (Optional)
-        if (a.value.id.length < b.value.id.length && a.value.id <= b.value.id) return -1;
-        if (a.value.id.length > b.value.id.length && a.value.id >= b.value.id) return 1;
+        if (a.value.id.length < b.value.id.length) return -1;
+        if (a.value.id.length > b.value.id.length) return 1;
+        if (a.value.id <= b.value.id) return -1;
+        if (a.value.id >= b.value.id) return 1;
         return 0;
     },
 });
@@ -416,7 +418,7 @@ function updateSelected(node)
             highlightLinks.add(link);
         });
     }
-    
+
 
     selectedNode = node || null;
 
